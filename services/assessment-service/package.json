@@ -1,0 +1,12 @@
+{
+  "name": "@english-learning/assessment-service",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node-dev src/index.ts",
+    "test": "jest",
+    "clean": "rm -rf dist"
+  }
+}

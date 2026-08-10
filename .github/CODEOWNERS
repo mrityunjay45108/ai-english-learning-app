@@ -1,0 +1,14 @@
+# Default owners
+* @yourusername
+
+# Service-specific owners
+/services/auth-service/ @auth-team
+/services/user-service/ @user-team
+/services/ai-*/ @ai-team
+
+# Frontend
+/apps/mobile/ @mobile-team
+/apps/web/ @web-team
+
+# Infrastructure
+/infra/ @devops-team
