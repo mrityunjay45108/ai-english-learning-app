@@ -1,46 +1,49 @@
-services:
+const fs = require('fs');
+const path = require('path');
+
+const dockerComposeContent = `services:
   # ======================================
-  # 1. POSTGRESQL DATABASE (Host Port 5433 -> Container 5432)
+  # 1. POSTGRESQL DATABASE
   # ======================================
   postgres:
     image: postgres:16-alpine
     container_name: english_learning_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: english_user
-      POSTGRES_PASSWORD: english_password
-      POSTGRES_DB: english_learning_db
+      POSTGRES_USER: ${POSTGRES_USER:-english_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-english_password}
+      POSTGRES_DB: ${POSTGRES_DB:-english_learning_db}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./infra/docker/postgres/init:/docker-entrypoint-initdb.d
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U english_user -d english_learning_db"]
+      test: ["CMD-SHELL", "pg_isready -U \${POSTGRES_USER:-english_user} -d \${POSTGRES_DB:-english_learning_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
 
   # ======================================
-  # 2. REDIS CACHE (Host Port 6380 -> Container 6379)
+  # 2. REDIS CACHE
   # ======================================
   redis:
     image: redis:7-alpine
     container_name: english_learning_redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass redis_password
+    command: redis-server --appendonly yes --requirepass \${REDIS_PASSWORD:-redis_password}
     ports:
-      - "6380:6379"
+      - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "redis_password", "ping"]
+      test: ["CMD", "redis-cli", "-a", "\${REDIS_PASSWORD:-redis_password}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -50,7 +53,7 @@ services:
   # 3. ZOOKEEPER
   # ======================================
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.4.0
+    image: confluentinc/cp-zookeeper:latest
     container_name: english_learning_zookeeper
     restart: unless-stopped
     environment:
@@ -64,7 +67,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "echo ruok | nc localhost 2181 | grep imok || exit 0"]
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181 | grep imok"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -74,7 +77,7 @@ services:
   # 4. KAFKA
   # ======================================
   kafka:
-    image: confluentinc/cp-kafka:7.4.0
+    image: confluentinc/cp-kafka:latest
     container_name: english_learning_kafka
     restart: unless-stopped
     depends_on:
@@ -97,10 +100,10 @@ services:
       - app-network
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
-      interval: 20s
+      interval: 30s
       timeout: 10s
       retries: 10
-      start_period: 30s
+      start_period: 60s
 
   # ======================================
   # 5. KAFKA UI
@@ -151,7 +154,8 @@ services:
       redis:
         condition: service_healthy
     environment:
-      REDIS_HOSTS: local:redis:6379:0:redis_password
+      REDIS_HOSTS: local:redis:6379
+      REDIS_PASSWORD: \${REDIS_PASSWORD:-redis_password}
     ports:
       - "8081:8081"
     networks:
@@ -171,3 +175,7 @@ networks:
   app-network:
     driver: bridge
     name: english-learning-network
+`;
+
+fs.writeFileSync(path.join(__dirname, 'docker-compose.yml'), dockerComposeContent);
+console.log('✅ Fresh docker-compose.yml with fixed Kafka healthchecks & ports written!');

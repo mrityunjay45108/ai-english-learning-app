@@ -1,47 +1,27 @@
-import { config } from 'dotenv';
+import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-// Load environment variables from .env file
-config({ path: path.join(__dirname, '../../.env') });
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 
-export interface DatabaseConfig {
-  host: string;
-  port: number;
-  database: string;
-  user: string;
-  password: string;
-  url: string;
-}
-
-export interface JwtConfig {
-  secret: string;
-  expiry: string;
-  refreshExpiry: string;
-}
-
-export interface AppConfig {
-  port: number;
-  env: string;
-  logLevel: string;
-}
-
-export const databaseConfig: DatabaseConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5433'),
-  database: process.env.DB_NAME || 'auth_db',
-  user: process.env.DB_USER || 'english_user',
-  password: process.env.DB_PASSWORD || 'english_password',
-  url: process.env.DATABASE_URL || 'postgresql://english_user:english_password@localhost:5433/auth_db'
-};
-
-export const jwtConfig: JwtConfig = {
-  secret: process.env.JWT_SECRET || 'default-secret-key',
-  expiry: process.env.JWT_EXPIRY || '7d',
-  refreshExpiry: process.env.REFRESH_TOKEN_EXPIRY || '30d'
-};
-
-export const appConfig: AppConfig = {
-  port: parseInt(process.env.PORT || '3001'),
-  env: process.env.NODE_ENV || 'development',
-  logLevel: process.env.LOG_LEVEL || 'info'
+export const config = {
+  app: {
+    port: parseInt(process.env.PORT || '3001'),
+    env: process.env.NODE_ENV || 'development',
+  },
+  database: {
+    url: process.env.DATABASE_URL || 'postgresql://english_user:english_password@localhost:5433/auth_db',
+  },
+  redis: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6380'),
+    password: process.env.REDIS_PASSWORD || 'redis_password',
+  },
+  jwt: {
+    secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
+    accessExpiry: process.env.JWT_ACCESS_EXPIRY || '15m',
+    refreshExpiry: process.env.JWT_REFRESH_EXPIRY || '7d',
+  },
+  bcrypt: {
+    saltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS || '10'),
+  },
 };

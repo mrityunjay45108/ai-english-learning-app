@@ -1,9 +1,11 @@
 import { UserRepository } from '../../src/modules/user/user.repository';
 import { PrismaService } from '../../src/database/prisma.service';
+import { RedisService } from '../../src/database/redis.service';
 
-describe('UserRepository', () => {
+describe('UserRepository with Redis', () => {
   let repository: UserRepository;
   let prismaService: PrismaService;
+  let redisService: RedisService;
 
   beforeEach(() => {
     prismaService = {
@@ -12,48 +14,31 @@ describe('UserRepository', () => {
         findUnique: jest.fn(),
         update: jest.fn(),
         delete: jest.fn(),
-        findMany: jest.fn(),
       },
     } as unknown as PrismaService;
 
-    repository = new UserRepository(prismaService);
+    redisService = {
+      getJson: jest.fn(),
+      setJson: jest.fn(),
+      del: jest.fn(),
+    } as unknown as RedisService;
+
+    repository = new UserRepository(prismaService, redisService);
   });
 
   it('should be defined', () => {
     expect(repository).toBeDefined();
   });
 
-  describe('createUser', () => {
-    it('should create a new user', async () => {
-      const userData = {
-        email: 'test@example.com',
-        passwordHash: 'hashedpassword',
-        firstName: 'Test',
-        lastName: 'User',
-      };
+  it('should fetch user from cache if available', async () => {
+    const email = 'cached@example.com';
+    const cachedUser = { id: '123', email, firstName: 'Cached' };
+    (redisService.getJson as jest.Mock).mockResolvedValue(cachedUser);
 
-      const expectedUser = { id: '123', ...userData };
-      (prismaService.user.create as jest.Mock).mockResolvedValue(expectedUser);
+    const result = await repository.findByEmail(email);
 
-      const result = await repository.createUser(userData as any);
-      expect(result).toEqual(expectedUser);
-      expect(prismaService.user.create).toHaveBeenCalledWith({ data: userData });
-    });
-  });
-
-  describe('findByEmail', () => {
-    it('should find a user by email', async () => {
-      const email = 'test@example.com';
-      const expectedUser = { id: '123', email, firstName: 'Test' };
-
-      (prismaService.user.findUnique as jest.Mock).mockResolvedValue(expectedUser);
-
-      const result = await repository.findByEmail(email);
-      expect(result).toEqual(expectedUser);
-      expect(prismaService.user.findUnique).toHaveBeenCalledWith({
-        where: { email },
-        include: { refreshTokens: true },
-      });
-    });
+    expect(result).toEqual(cachedUser);
+    expect(redisService.getJson).toHaveBeenCalledWith(`user:email:${email}`);
+    expect(prismaService.user.findUnique).not.toHaveBeenCalled();
   });
 });

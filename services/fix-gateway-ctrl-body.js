@@ -1,4 +1,9 @@
-import { Controller, All, Req, Res, Body, HttpStatus } from '@nestjs/common';
+const fs = require('fs');
+const path = require('path');
+
+const ctrlPath = path.join(__dirname, 'src', 'controllers', 'gateway.controller.ts');
+
+const ctrlContent = `import { Controller, All, Req, Res, Body, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ProxyService } from '../services/proxy.service';
 import { RequestContextService } from '../services/request-context.service';
@@ -24,7 +29,7 @@ export class GatewayController {
     const service = this.getServiceForPath(req.path);
 
     if (!service) {
-      return res.status(HttpStatus.NOT_FOUND).json({ statusCode: 404, message: `Service not found for ${req.path}` });
+      return res.status(HttpStatus.NOT_FOUND).json({ statusCode: 404, message: \`Service not found for \${req.path}\` });
     }
 
     try {
@@ -32,11 +37,9 @@ export class GatewayController {
       const response = await this.proxyService.forwardRequest(service, req.method, req.path, req.headers, payload);
       return res.status(response.status).json(response.data);
     } catch (error: any) {
-      console.error('❌ GATEWAY PROXY ERROR:', error?.message || error);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         statusCode: 500,
-        message: error?.message || 'Gateway Internal Error',
-        details: error?.response?.data || null,
+        message: error.message || 'Internal server error in Gateway Proxy',
       });
     }
   }
@@ -48,3 +51,7 @@ export class GatewayController {
     return null;
   }
 }
+`;
+
+fs.writeFileSync(ctrlPath, ctrlContent);
+console.log('✅ Gateway Controller Body Fix Applied!');
