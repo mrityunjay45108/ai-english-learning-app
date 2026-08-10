@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  phone         String?        @unique
+  passwordHash  String         @map("password_hash")
+  firstName     String?        @map("first_name")
+  lastName      String?        @map("last_name")
+  role          Role           @default(STUDENT)
+  isVerified    Boolean        @default(false) @map("is_verified")
+  isActive      Boolean        @default(true) @map("is_active")
+  lastLogin     DateTime?      @map("last_login")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  
+  refreshTokens RefreshToken[]
+  otps          Otp[]
+
+  @@map("users")
+  @@index([email])
+  @@index([phone])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  isRevoked Boolean  @default(false) @map("is_revoked")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model Otp {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  code      String
+  purpose   String   // 'email_verification', 'password_reset', 'login'
+  expiresAt DateTime @map("expires_at")
+  attempts  Int      @default(0)
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("otps")
+  @@index([userId])
+  @@index([code])
+  @@index([expiresAt])
+}
