@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/@prisma/client-assessment"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+enum AssessmentType {
+  INITIAL
+  GRAMMAR
+  VOCABULARY
+  LISTENING
+  READING
+  SPEAKING
+}
+
+enum AssessmentStatus {
+  DRAFT
+  ACTIVE
+  STARTED
+  COMPLETED
+  EXPIRED
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  FILL_BLANK
+  TRUE_FALSE
+  MATCHING
+  SPEAKING
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  ELEMENTARY
+  INTERMEDIATE
+  UPPER_INTERMEDIATE
+  ADVANCED
+}
+
+enum QuestionCategory {
+  GRAMMAR
+  VOCABULARY
+  LISTENING
+  READING
+  SPEAKING
+}
+
+// ============================================
+// ASSESSMENT
+// ============================================
+model Assessment {
+  id              String           @id @default(uuid())
+  userId          String           @map("user_id")
+  title           String
+  description     String?          @db.Text
+  type            AssessmentType   @default(INITIAL)
+  status          AssessmentStatus @default(DRAFT)
+  totalQuestions  Int              @default(0) @map("total_questions")
+  timeLimit       Int?             @map("time_limit") // in minutes
+
+  passingScore    Int?             @default(60) @map("passing_score")
+  metadata        Json?
+
+  startedAt       DateTime?        @map("started_at")
+  completedAt     DateTime?        @map("completed_at")
+  expiresAt       DateTime?        @map("expires_at")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  questions       AssessmentQuestion[]
+  attempts        AssessmentAttempt[]
+  results         AssessmentResult?
+
+  @@map("assessments")
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ============================================
+// ASSESSMENT QUESTIONS
+// ============================================
+model AssessmentQuestion {
+  id              String           @id @default(uuid())
+  assessmentId    String           @map("assessment_id")
+
+  questionText    String           @db.Text @map("question_text")
+  options         Json?
+  correctAnswer   String?          @map("correct_answer")
+
+  type            QuestionType     @default(MULTIPLE_CHOICE)
+  category        QuestionCategory
+  difficulty      DifficultyLevel  @default(BEGINNER)
+  points          Int              @default(1)
+
+  audioUrl        String?          @map("audio_url")
+  expectedAnswer  String?          @map("expected_answer")
+
+  orderIndex      Int              @default(0) @map("order_index")
+
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  assessment      Assessment       @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  attempts        AssessmentAttempt[]
+
+  @@map("assessment_questions")
+  @@index([assessmentId])
+  @@index([type])
+  @@index([category])
+  @@index([difficulty])
+  @@unique([assessmentId, orderIndex])
+}
+
+// ============================================
+// ASSESSMENT ATTEMPTS
+// ============================================
+model AssessmentAttempt {
+  id              String           @id @default(uuid())
+  assessmentId    String           @map("assessment_id")
+  userId          String           @map("user_id")
+  questionId      String           @map("question_id")
+
+  userAnswer      Json?            @map("user_answer")
+  isCorrect       Boolean?         @map("is_correct")
+  score           Int?             @default(0)
+  timeTaken       Int?             @map("time_taken")
+
+  createdAt       DateTime         @default(now()) @map("created_at")
+
+  assessment      Assessment       @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  question        AssessmentQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("assessment_attempts")
+  @@index([assessmentId])
+  @@index([userId])
+  @@index([questionId])
+  @@index([createdAt])
+}
+
+// ============================================
+// ASSESSMENT RESULTS
+// ============================================
+model AssessmentResult {
+  id              String           @id @default(uuid())
+  assessmentId    String           @unique @map("assessment_id")
+  userId          String           @map("user_id")
+
+  totalScore      Int              @map("total_score")
+  maxScore        Int              @map("max_score")
+  percentage      Float            @map("percentage")
+
+  correctCount    Int              @default(0) @map("correct_count")
+  wrongCount      Int              @default(0) @map("wrong_count")
+  unansweredCount Int              @default(0) @map("unanswered_count")
+
+  grammarScore    Float?           @map("grammar_score")
+  vocabularyScore Float?           @map("vocabulary_score")
+  listeningScore  Float?           @map("listening_score")
+  readingScore    Float?           @map("reading_score")
+
+  recommendedLevel DifficultyLevel @map("recommended_level")
+  rawLevel        String?          @map("raw_level")
+
+  feedback        String?          @db.Text
+  metadata        Json?
+
+  completedAt     DateTime         @default(now()) @map("completed_at")
+
+  assessment      Assessment       @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@map("assessment_results")
+  @@index([userId])
+  @@index([recommendedLevel])
+  @@index([completedAt])
+}

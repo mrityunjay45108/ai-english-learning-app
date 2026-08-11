@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CourseRepository } from './course.repository';
 import { CreateCourseDto, UpdateCourseDto, CourseQueryDto } from '../../common/dto/course.dto';
-import { Course } from '@prisma/client';
+import { Course } from '@prisma/client-course';
 
 @Injectable()
 export class CourseService {
