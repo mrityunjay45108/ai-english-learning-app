@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  id          String   @id @default(uuid())
+  userId      String   @unique @map("user_id")
+  firstName   String?  @map("first_name")
+  lastName    String?  @map("last_name")
+  avatarUrl   String?  @map("avatar_url")
+  bio         String?  @db.Text
+  dateOfBirth DateTime? @map("date_of_birth")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  preferences Preferences?
+
+  @@map("profiles")
+  @@index([userId])
+}
+
+model Preferences {
+  id                  String   @id @default(uuid())
+  userId              String   @unique @map("user_id")
+  locale              String   @default("hi-IN")
+  timezone            String   @default("Asia/Kolkata")
+  learningGoals       Json?    @map("learning_goals")
+  dailyGoalMinutes    Int      @default(15) @map("daily_goal_minutes")
+  notificationEnabled Boolean  @default(true) @map("notification_enabled")
+  emailNotifications  Boolean  @default(true) @map("email_notifications")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  profile             Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("preferences")
+  @@index([userId])
+}

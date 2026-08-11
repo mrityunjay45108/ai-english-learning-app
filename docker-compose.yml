@@ -1,7 +1,4 @@
 services:
-  # ======================================
-  # 1. POSTGRESQL DATABASE (Host Port 5433 -> Container 5432)
-  # ======================================
   postgres:
     image: postgres:16-alpine
     container_name: english_learning_postgres
@@ -15,19 +12,14 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infra/docker/postgres/init:/docker-entrypoint-initdb.d
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U english_user -d english_learning_db"]
+      test: ["CMD-SHELL", "pg_isready -U english_user"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
 
-  # ======================================
-  # 2. REDIS CACHE (Host Port 6380 -> Container 6379)
-  # ======================================
   redis:
     image: redis:7-alpine
     container_name: english_learning_redis
@@ -44,11 +36,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 5s
 
-  # ======================================
-  # 3. ZOOKEEPER
-  # ======================================
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
     container_name: english_learning_zookeeper
@@ -60,7 +48,7 @@ services:
       - "2181:2181"
     volumes:
       - zookeeper_data:/var/lib/zookeeper/data
-      - zookeeper_data:/var/lib/zookeeper/log
+      - zookeeper_log:/var/lib/zookeeper/log
     networks:
       - app-network
     healthcheck:
@@ -70,9 +58,6 @@ services:
       retries: 5
       start_period: 10s
 
-  # ======================================
-  # 4. KAFKA
-  # ======================================
   kafka:
     image: confluentinc/cp-kafka:7.4.0
     container_name: english_learning_kafka
@@ -85,9 +70,9 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     ports:
       - "9092:9092"
@@ -102,9 +87,6 @@ services:
       retries: 10
       start_period: 30s
 
-  # ======================================
-  # 5. KAFKA UI
-  # ======================================
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: english_learning_kafka_ui
@@ -121,9 +103,6 @@ services:
     networks:
       - app-network
 
-  # ======================================
-  # 6. PGADMIN
-  # ======================================
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: english_learning_pgadmin
@@ -140,9 +119,6 @@ services:
     networks:
       - app-network
 
-  # ======================================
-  # 7. REDIS COMMANDER
-  # ======================================
   redis-commander:
     image: rediscommander/redis-commander:latest
     container_name: english_learning_redis_commander
@@ -157,6 +133,11 @@ services:
     networks:
       - app-network
 
+networks:
+  app-network:
+    driver: bridge
+    name: english-learning-network
+
 volumes:
   postgres_data:
     name: english_learning_postgres_data
@@ -166,8 +147,5 @@ volumes:
     name: english_learning_kafka_data
   zookeeper_data:
     name: english_learning_zookeeper_data
-
-networks:
-  app-network:
-    driver: bridge
-    name: english-learning-network
+  zookeeper_log:
+    name: english_learning_zookeeper_log
