@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PaymentStatus {
+  CREATED
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+model PaymentOrder {
+  id              String         @id @default(uuid())
+  userId          String         @map("user_id")
+  orderId         String         @unique @map("order_id")
+  amount          Int
+  currency        String         @default("INR")
+  description     String?        @db.Text
+  metadata        Json?
+  status          PaymentStatus  @default(CREATED)
+  provider        String         @default("mock")
+  providerOrderId String?        @map("provider_order_id")
+  expiresAt       DateTime?      @map("expires_at")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  transactions    PaymentTransaction[]
+  webhooks        PaymentWebhook[]
+
+  @@map("payment_orders")
+  @@index([userId])
+  @@index([orderId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PaymentTransaction {
+  id              String         @id @default(uuid())
+  orderId         String         @map("order_id")
+  userId          String         @map("user_id")
+  transactionId   String         @unique @map("transaction_id")
+  amount          Int
+  currency        String         @default("INR")
+  status          PaymentStatus
+  provider        String         @default("mock")
+  providerId      String?        @map("provider_id")
+  providerResponse Json?         @map("provider_response")
+  idempotencyKey  String?        @unique @map("idempotency_key")
+  completedAt     DateTime?      @map("completed_at")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  order           PaymentOrder   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  refunds         Refund[]
+
+  @@map("payment_transactions")
+  @@index([orderId])
+  @@index([userId])
+  @@index([transactionId])
+  @@index([status])
+}
+
+model PaymentWebhook {
+  id              String   @id @default(uuid())
+  orderId         String   @map("order_id")
+  provider        String   @default("mock")
+  eventType       String   @map("event_type")
+  payload         Json
+  signature       String?
+  isProcessed     Boolean  @default(false) @map("is_processed")
+  processedAt     DateTime? @map("processed_at")
+  errorMessage    String?  @map("error_message")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  order           PaymentOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payment_webhooks")
+  @@index([orderId])
+  @@index([eventType])
+  @@index([isProcessed])
+}
+
+model Refund {
+  id              String   @id @default(uuid())
+  transactionId   String   @map("transaction_id")
+  userId          String   @map("user_id")
+  amount          Int
+  currency        String   @default("INR")
+  reason          String?  @db.Text
+  status          String   @default("PENDING")
+  provider        String   @default("mock")
+  providerRefundId String? @map("provider_refund_id")
+  providerResponse Json?   @map("provider_response")
+  createdAt       DateTime @default(now()) @map("created_at")
+  completedAt     DateTime? @map("completed_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  transaction     PaymentTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@map("refunds")
+  @@index([transactionId])
+  @@index([userId])
+  @@index([status])
+}

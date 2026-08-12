@@ -1,0 +1,7 @@
+export enum AdminRole {
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  ADMIN = 'ADMIN',
+  CONTENT_MANAGER = 'CONTENT_MANAGER',
+  SUPPORT = 'SUPPORT',
+  ANALYST = 'ANALYST',
+}
