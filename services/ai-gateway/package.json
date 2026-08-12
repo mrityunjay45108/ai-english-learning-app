@@ -2,11 +2,31 @@
   "name": "@english-learning/ai-gateway",
   "version": "0.1.0",
   "private": true,
-  "main": "dist/index.js",
+  "description": "AI Gateway Service",
+  "main": "dist/main.js",
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node-dev src/index.ts",
-    "test": "jest",
-    "clean": "rm -rf dist"
+    "dev": "ts-node-dev src/main.ts",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/config": "^3.0.0",
+    "@nestjs/jwt": "^10.0.0",
+    "@nestjs/passport": "^10.0.0",
+    "@nestjs/axios": "^3.0.0",
+    "class-validator": "^0.14.0",
+    "class-transformer": "^0.5.1",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.0",
+    "dotenv": "^16.0.0",
+    "ioredis": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "5.3.3",
+    "ts-node-dev": "^2.0.0"
   }
 }
