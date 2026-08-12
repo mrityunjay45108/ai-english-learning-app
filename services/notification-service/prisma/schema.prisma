@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum NotificationChannel {
+  EMAIL
+  PUSH
+  IN_APP
+  SMS
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  CANCELLED
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Notification {
+  id               String               @id @default(uuid())
+  userId           String               @map("user_id")
+  channel          NotificationChannel
+  type             String
+  title            String
+  body             String               @db.Text
+  data             Json?
+  priority         NotificationPriority @default(MEDIUM)
+  status           NotificationStatus   @default(PENDING)
+  sentAt           DateTime?            @map("sent_at")
+  deliveredAt      DateTime?            @map("delivered_at")
+  readAt           DateTime?            @map("read_at")
+  providerId       String?              @map("provider_id")
+  providerResponse Json?                @map("provider_response")
+  errorMessage     String?              @map("error_message")
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+
+  @@map("notifications")
+  @@index([userId])
+  @@index([channel])
+  @@index([status])
+}
+
+model NotificationTemplate {
+  id        String              @id @default(uuid())
+  type      String              @unique
+  channel   NotificationChannel
+  title     String
+  body      String              @db.Text
+  priority  NotificationPriority @default(MEDIUM)
+  isActive  Boolean             @default(true) @map("is_active")
+  createdAt DateTime            @default(now()) @map("created_at")
+  updatedAt DateTime            @updatedAt @map("updated_at")
+
+  @@map("notification_templates")
+  @@index([type])
+}
+
+model NotificationPreference {
+  id                  String   @id @default(uuid())
+  userId              String   @unique @map("user_id")
+  emailWeeklyReport   Boolean  @default(true) @map("email_weekly_report")
+  emailMarketing      Boolean  @default(true) @map("email_marketing")
+  emailLessonReminder Boolean  @default(true) @map("email_lesson_reminder")
+  pushLessonReminder  Boolean  @default(true) @map("push_lesson_reminder")
+  pushStreakAlert     Boolean  @default(true) @map("push_streak_alert")
+  pushAchievement    Boolean  @default(true) @map("push_achievement")
+  inAppAll            Boolean  @default(true) @map("in_app_all")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@map("notification_preferences")
+  @@index([userId])
+}
