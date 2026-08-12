@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+  PENDING
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+  ONE_TIME
+}
+
+enum PlanStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+model Plan {
+  id            String         @id @default(uuid())
+  name          String         @unique
+  description   String?        @db.Text
+  price         Int
+  currency      String         @default("INR")
+  interval      BillingCycle
+  trialDays     Int?           @map("trial_days")
+  status        PlanStatus     @default(ACTIVE)
+  features      Json           @default("[]")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  subscriptions Subscription[]
+  planFeatures  PlanFeature[]
+
+  @@map("plans")
+  @@index([name])
+  @@index([status])
+}
+
+model PlanFeature {
+  id           String   @id @default(uuid())
+  planId       String   @map("plan_id")
+  featureKey   String   @map("feature_key")
+  featureValue String   @map("feature_value")
+  description  String?  @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+  plan         Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("plan_features")
+  @@index([planId])
+  @@index([featureKey])
+  @@unique([planId, featureKey])
+}
+
+model Subscription {
+  id                 String             @id @default(uuid())
+  userId             String             @unique @map("user_id")
+  planId             String             @map("plan_id")
+  status             SubscriptionStatus @default(PENDING)
+  trialStart         DateTime?          @map("trial_start")
+  trialEnd           DateTime?          @map("trial_end")
+  currentPeriodStart DateTime           @default(now()) @map("current_period_start")
+  currentPeriodEnd   DateTime           @map("current_period_end")
+  cancelAtPeriodEnd  Boolean            @default(false) @map("cancel_at_period_end")
+  cancelledAt        DateTime?          @map("cancelled_at")
+  gracePeriodEnd     DateTime?          @map("grace_period_end")
+  paymentProvider    String?            @map("payment_provider")
+  providerId         String?            @map("provider_id")
+  metadata           Json?
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+  plan               Plan               @relation(fields: [planId], references: [id])
+  events             SubscriptionEvent[]
+
+  @@map("subscriptions")
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+}
+
+model SubscriptionEvent {
+  id             String       @id @default(uuid())
+  subscriptionId String       @map("subscription_id")
+  userId         String       @map("user_id")
+  eventType      String       @map("event_type")
+  oldStatus      String?      @map("old_status")
+  newStatus      String?      @map("new_status")
+  metadata       Json?
+  createdAt      DateTime     @default(now()) @map("created_at")
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@map("subscription_events")
+  @@index([subscriptionId])
+  @@index([userId])
+}
