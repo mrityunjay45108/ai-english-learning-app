@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum ActivityType {
+  LESSON_STARTED
+  LESSON_COMPLETED
+  CONTENT_VIEWED
+  EXERCISE_COMPLETED
+  GRAMMAR_EXERCISE_COMPLETED
+  VOCABULARY_LEARNED
+  ASSESSMENT_COMPLETED
+  SPEAKING_PRACTICE
+  COURSE_STARTED
+  COURSE_COMPLETED
+  DAILY_STREAK
+}
+
+model UserStats {
+  id               String   @id @default(uuid())
+  userId           String   @unique @map("user_id")
+  totalXp          Int      @default(0) @map("total_xp")
+  level            Int      @default(1)
+  streakDays       Int      @default(0) @map("streak_days")
+  bestStreak       Int      @default(0) @map("best_streak")
+  coursesCompleted Int      @default(0) @map("courses_completed")
+  lessonsCompleted Int      @default(0) @map("lessons_completed")
+  totalTimeSpent   Int      @default(0) @map("total_time_spent")
+  lastActive       DateTime @map("last_active")
+  lastStreakDate   DateTime? @map("last_streak_date")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("user_stats")
+  @@index([userId])
+  @@index([level])
+}
+
+model CourseProgress {
+  id                 String         @id @default(uuid())
+  userId             String         @map("user_id")
+  courseId           String         @map("course_id")
+  status             ProgressStatus @default(NOT_STARTED)
+  progressPercentage Int            @default(0) @map("progress_percentage")
+  lessonsCompleted   Int            @default(0) @map("lessons_completed")
+  totalLessons       Int            @default(0) @map("total_lessons")
+  score              Int            @default(0)
+  timeSpent          Int            @default(0) @map("time_spent")
+  startedAt          DateTime?      @map("started_at")
+  completedAt        DateTime?      @map("completed_at")
+  lastAccessed       DateTime       @default(now()) @map("last_accessed")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+  lessons            LessonProgress[]
+
+  @@map("course_progress")
+  @@index([userId])
+  @@index([courseId])
+  @@index([status])
+  @@unique([userId, courseId])
+}
+
+model LessonProgress {
+  id           String         @id @default(uuid())
+  userId       String         @map("user_id")
+  lessonId     String         @map("lesson_id")
+  courseId     String         @map("course_id")
+  status       ProgressStatus @default(NOT_STARTED)
+  score        Int            @default(0)
+  maxScore     Int?           @map("max_score")
+  timeSpent    Int            @default(0) @map("time_spent")
+  attempts     Int            @default(0)
+  completedAt  DateTime?      @map("completed_at")
+  lastAccessed DateTime       @default(now()) @map("last_accessed")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  course       CourseProgress @relation(fields: [courseId, userId], references: [courseId, userId])
+
+  @@map("lesson_progress")
+  @@index([userId])
+  @@index([lessonId])
+  @@index([courseId])
+  @@index([status])
+  @@unique([userId, lessonId])
+}
+
+model LearningActivity {
+  id           String       @id @default(uuid())
+  userId       String       @map("user_id")
+  activityType ActivityType @map("activity_type")
+  activityId   String       @map("activity_id")
+  metadata     Json?
+  xpEarned     Int          @default(0) @map("xp_earned")
+  timestamp    DateTime     @default(now())
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  @@map("learning_activities")
+  @@index([userId])
+  @@index([activityType])
+  @@index([timestamp])
+  @@index([userId, timestamp])
+}

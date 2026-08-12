@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum ExerciseType {
+  MULTIPLE_CHOICE
+  FILL_BLANK
+  TRUE_FALSE
+  MATCHING
+}
+
+enum TopicStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum UserProgressStatus {
+  NOT_STARTED
+  LEARNING
+  MASTERED
+}
+
+model GrammarTopic {
+  id          String        @id @default(uuid())
+  name        String        @unique
+  description String?       @db.Text
+  category    String
+  difficulty  DifficultyLevel @default(BEGINNER)
+  orderIndex  Int           @default(0) @map("order_index")
+  status      TopicStatus   @default(ACTIVE)
+  icon        String?
+  color       String?       @default("#6366f1")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  rules       GrammarRule[]
+  exercises   GrammarExercise[]
+  progress    UserGrammarProgress[]
+
+  @@map("grammar_topics")
+  @@index([name])
+  @@index([category])
+  @@index([difficulty])
+  @@index([status])
+}
+
+model GrammarRule {
+  id               String    @id @default(uuid())
+  topicId          String    @map("topic_id")
+  title            String
+  ruleText         String    @db.Text @map("rule_text")
+  explanation      String?   @db.Text
+  explanationHindi String?   @map("explanation_hindi") @db.Text
+  examples         Json?
+  orderIndex       Int       @default(0) @map("order_index")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  topic            GrammarTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  exercises        GrammarExercise[]
+
+  @@map("grammar_rules")
+  @@index([topicId])
+  @@index([orderIndex])
+}
+
+model GrammarExercise {
+  id               String         @id @default(uuid())
+  topicId          String         @map("topic_id")
+  ruleId           String?        @map("rule_id")
+  question         String         @db.Text
+  options          Json?
+  correctAnswer    String         @map("correct_answer")
+  type             ExerciseType   @default(MULTIPLE_CHOICE)
+  difficulty       DifficultyLevel @default(BEGINNER)
+  explanation      String?        @db.Text
+  explanationHindi String?        @map("explanation_hindi") @db.Text
+  hints            Json?
+  orderIndex       Int            @default(0) @map("order_index")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+  topic            GrammarTopic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  rule             GrammarRule?   @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+
+  @@map("grammar_exercises")
+  @@index([topicId])
+  @@index([ruleId])
+  @@index([difficulty])
+  @@index([type])
+}
+
+model UserGrammarProgress {
+  id            String            @id @default(uuid())
+  userId        String            @map("user_id")
+  topicId       String            @map("topic_id")
+  status        UserProgressStatus @default(NOT_STARTED)
+  score         Int               @default(0)
+  maxScore      Int?              @map("max_score")
+  attempts      Int               @default(0)
+  correctCount  Int               @default(0) @map("correct_count")
+  wrongCount    Int               @default(0) @map("wrong_count")
+  lastPracticed DateTime?         @map("last_practiced")
+  masteredAt    DateTime?         @map("mastered_at")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  topic         GrammarTopic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@map("user_grammar_progress")
+  @@index([userId])
+  @@index([topicId])
+  @@index([status])
+  @@unique([userId, topicId])
+}

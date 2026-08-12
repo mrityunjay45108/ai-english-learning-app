@@ -52,3 +52,13 @@ tmp/
 temp/
 *.tmp
 "nul" 
+
+
+.env
+# Turbo cache
+.turbo/
+
+# Environment files
+.env
+.env.*
+!.env.example
