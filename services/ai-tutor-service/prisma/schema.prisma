@@ -7,81 +7,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum ConversationMode {
-  CONVERSATION
-  GRAMMAR
-  VOCABULARY
-  INTERVIEW
-  FREE_SPEAKING
-}
-
-enum ConversationStatus {
-  ACTIVE
-  COMPLETED
-  ARCHIVED
-}
-
-enum MessageRole {
-  USER
-  ASSISTANT
-  SYSTEM
-}
-
-enum FeedbackType {
-  GRAMMAR
-  VOCABULARY
-  FLUENCY
-  PRONUNCIATION
-  CONTENT
-}
-
 model Conversation {
-  id           String             @id @default(uuid())
-  userId       String             @map("user_id")
-  mode         ConversationMode   @default(CONVERSATION)
-  title        String?
-  status       ConversationStatus @default(ACTIVE)
-  context      Json?
-  messageCount Int                @default(0) @map("message_count")
-  tokenCount   Int                @default(0) @map("token_count")
-  createdAt    DateTime           @default(now()) @map("created_at")
-  updatedAt    DateTime           @updatedAt @map("updated_at")
-  messages     ConversationMessage[]
-  feedback     LearningFeedback[]
+  id        String                @id @default(uuid())
+  userId    String
+  title     String?
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  messages  ConversationMessage[]
 
   @@map("conversations")
-  @@index([userId])
-  @@index([mode])
-  @@index([status])
 }
 
 model ConversationMessage {
   id             String       @id @default(uuid())
-  conversationId String       @map("conversation_id")
-  role           MessageRole
-  content        String       @db.Text
-  analysis       Json?
-  tokensUsed     Int?         @map("tokens_used")
-  latency        Int?
-  createdAt      DateTime     @default(now()) @map("created_at")
+  conversationId String
+  sender         String       // "user" | "ai"
+  text           String
+  metadata       Json?
+  createdAt      DateTime     @default(now())
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@map("conversation_messages")
-  @@index([conversationId])
-  @@index([role])
-}
-
-model LearningFeedback {
-  id             String       @id @default(uuid())
-  userId         String       @map("user_id")
-  conversationId String?      @map("conversation_id")
-  feedbackType   FeedbackType @map("feedback_type")
-  feedbackData   Json         @map("feedback_data")
-  isAcknowledged Boolean      @default(false) @map("is_acknowledged")
-  createdAt      DateTime     @default(now()) @map("created_at")
-  conversation   Conversation? @relation(fields: [conversationId], references: [id])
-
-  @@map("learning_feedback")
-  @@index([userId])
-  @@index([feedbackType])
 }

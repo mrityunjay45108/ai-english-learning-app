@@ -1,0 +1,23 @@
+replicaCount: 1
+image:
+  repository: english-learning/api-gateway
+  tag: dev
+namespace: english-learning-dev
+service:
+  port: 3000
+env:
+  - name: NODE_ENV
+    value: development
+  - name: PORT
+    value: "3000"
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 3000
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 3000
+
+image:
+  pullPolicy: Never

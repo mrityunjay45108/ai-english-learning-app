@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "English Learning AI",
+    "slug": "english-learning-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["**/*"],
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

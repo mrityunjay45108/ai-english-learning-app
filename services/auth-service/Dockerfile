@@ -2,24 +2,24 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
-
-# Copy package files
-COPY package*.json pnpm-lock.yaml* ./
+# Copy only auth service files
+COPY services/auth-service/package.json services/auth-service/pnpm-lock.yaml* ./
+COPY packages/ ./packages/
 
 # Install dependencies
-RUN pnpm install
+RUN npm install -g pnpm && pnpm install --filter @english-learning/auth-service
 
 # Copy source
-COPY . .
+COPY services/auth-service/ ./services/auth-service/
+COPY tsconfig.base.json .
 
 # Generate Prisma client
+WORKDIR /app/services/auth-service
 RUN pnpm prisma:generate
 
-# Build the app
+# Build
 RUN pnpm build
 
 EXPOSE 3001
 
-CMD ["pnpm", "start:prod"]
+CMD ["node", "dist/main.js"]

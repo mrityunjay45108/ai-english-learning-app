@@ -1,0 +1,62 @@
+{
+  "region": "ap-south-1",
+  "vpc": {
+    "cidr": "10.0.0.0/16",
+    "publicSubnets": [
+      "10.0.1.0/24",
+      "10.0.2.0/24"
+    ],
+    "privateAppSubnets": [
+      "10.0.10.0/24",
+      "10.0.11.0/24"
+    ],
+    "privateDataSubnets": [
+      "10.0.12.0/24",
+      "10.0.13.0/24"
+    ],
+    "natGateways": 2
+  },
+  "eks": {
+    "clusterName": "english-learning-eks",
+    "version": "1.28",
+    "nodeGroups": {
+      "general": {
+        "instanceType": "t3.medium",
+        "min": 3,
+        "max": 10,
+        "desired": 3
+      },
+      "ai": {
+        "instanceType": "t3.xlarge",
+        "min": 2,
+        "max": 5,
+        "desired": 2
+      },
+      "memory": {
+        "instanceType": "t3.medium",
+        "min": 2,
+        "max": 5,
+        "desired": 2
+      }
+    }
+  },
+  "rds": {
+    "engine": "postgres",
+    "version": "15.4",
+    "instanceClass": "db.t3.medium",
+    "multiAZ": true,
+    "storageGb": 100
+  },
+  "redis": {
+    "engine": "redis",
+    "version": "7.0",
+    "nodeType": "cache.t3.medium",
+    "shards": 2,
+    "replicasPerShard": 1
+  },
+  "kafka": {
+    "brokerType": "kafka.m5.large",
+    "nodes": 3,
+    "storagePerBrokerGb": 100
+  }
+}

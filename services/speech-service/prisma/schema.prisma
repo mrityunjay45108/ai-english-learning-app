@@ -70,3 +70,41 @@ model AudioMetadata {
   @@index([userId])
   @@index([fileKey])
 }
+
+model SpeakingSession {
+  id            String         @id @default(uuid())
+  userId        String         @map("user_id")
+  title         String?
+  status        String         @default("active")
+  totalTurns    Int            @default(0) @map("total_turns")
+  totalDuration Int            @default(0) @map("total_duration")
+  completedAt   DateTime?      @map("completed_at")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  turns         SpeakingTurn[]
+
+  @@map("speaking_sessions")
+  @@index([userId])
+}
+
+model SpeakingTurn {
+  id                 String          @id @default(uuid())
+  sessionId          String          @map("session_id")
+  userId             String          @map("user_id")
+  audioKey           String?         @map("audio_key")
+  audioDuration      Float?          @map("audio_duration")
+  transcript         String?         @db.Text
+  grammarIssues      Json?           @map("grammar_issues")
+  fluencyScore       Float?          @map("fluency_score")
+  pronunciationScore Float?          @map("pronunciation_score")
+  overallScore       Float?          @map("overall_score")
+  feedback           Json?
+  correctedText      String?         @map("corrected_text") @db.Text
+  hindiExplanation   String?         @map("hindi_explanation") @db.Text
+  audioResponseKey   String?         @map("audio_response_key")
+  createdAt          DateTime        @default(now()) @map("created_at")
+  session            SpeakingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("speaking_turns")
+  @@index([sessionId])
+}

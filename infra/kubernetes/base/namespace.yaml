@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: english-learning
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: english-learning-dev
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: english-learning-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: english-learning-monitoring

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: english-learning
+data:
+  NODE_ENV: production
+  LOG_LEVEL: info
+  API_GATEWAY_URL: http://api-gateway:3000
+  AUTH_SERVICE_URL: http://auth-service:3001
+  USER_SERVICE_URL: http://user-service:3002
+  COURSE_SERVICE_URL: http://course-service:3003
+  SPEECH_SERVICE_URL: http://speech-service:3012
+  REAL_TIME_SERVICE_URL: http://realtime-service:3019
+  REDIS_HOST: redis-service
+  REDIS_PORT: "6379"
+  POSTGRES_HOST: postgres-service
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: english_learning_db
