@@ -65,3 +65,15 @@ temp/
 
 .env.example
 # Environment Variables (Security)
+
+# Node & Monorepo Dependencies (All Nested Folders)
+**/node_modules
+**/node_modules/**
+.pnpm-store
+**/.pnpm-store
+**/.turbo
+# Build Outputs & Caches
+**/dist
+**/build
+**/.next
+# Environment Files
