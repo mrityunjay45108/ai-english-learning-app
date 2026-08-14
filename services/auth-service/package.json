@@ -6,9 +6,22 @@
     "build": "tsc",
     "dev": "ts-node src/main.ts",
     "start": "node dist/main.js",
+    "start:prod": "NODE_ENV=production node dist/main.js",
     "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint .",
+    "clean": "rm -rf dist generated",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:create": "prisma migrate dev --create-only",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:rollback": "prisma migrate resolve --rolled-back",
+    "prisma:seed": "node prisma/seed.js",
+    "prisma:studio": "prisma studio",
+    "prisma:validate": "prisma validate",
+    "prisma:format": "prisma format",
+    "prisma:push": "prisma db push",
+    "prisma:reset": "prisma migrate reset --force"
   },
   "dependencies": {
     "@nestjs/axios": "^3.0.0",
@@ -30,6 +43,7 @@
     "kafkajs": "^2.2.4",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "redis": "^6.2.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
     "uuid": "^9.0.0"

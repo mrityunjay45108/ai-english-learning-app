@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth.store';
-import { LayoutDashboard, Users, ShieldAlert, BarChart3, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, LogOut } from 'lucide-react';
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuthStore();
@@ -39,7 +39,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <div className="p-4 border-t border-gray-800">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-white">{user?.firstName || 'Admin'}</p>
+              <p className="text-sm font-semibold text-white">{(user as any)?.firstName || (user as any)?.name || 'Admin'}</p>
               <p className="text-xs text-gray-400">{user?.email || 'admin@platform.com'}</p>
             </div>
             <button onClick={handleLogout} className="p-2 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-red-400 transition-colors">

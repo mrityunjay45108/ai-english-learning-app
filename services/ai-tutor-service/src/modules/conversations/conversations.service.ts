@@ -21,16 +21,14 @@ export class ConversationsService {
     const conversation = await this.prisma.conversation.create({
       data: {
         userId,
-        mode: dto.mode || ConversationMode.CONVERSATION,
-        title: dto.title || `${dto.mode || 'Conversation'} - ${new Date().toLocaleDateString()}`,
-        context: dto.context || {},
+        title: dto.title || `Conversation - ${new Date().toLocaleDateString()}`,
       },
     });
 
     await this.redis.setJson(`conversation:${conversation.id}`, {
       userId,
-      mode: conversation.mode,
-      context: conversation.context,
+      mode: dto.mode || ConversationMode.CONVERSATION,
+      context: dto.context || {},
       messages: [],
     });
 
@@ -53,16 +51,14 @@ export class ConversationsService {
     const userMessage = await this.prisma.conversationMessage.create({
       data: {
         conversationId,
-        role: 'USER',
-        content: dto.content,
+        sender: 'user',
+        text: dto.content,
       },
     });
 
-    const userContext = {
-      level: (conversation.context as any)?.level || 'BEGINNER',
-      goals: (conversation.context as any)?.goals || [],
-    };
-
+    const convoCache = await this.redis.getJson<any>(`conversation:${conversationId}`);
+    const mode = convoCache?.mode || ConversationMode.CONVERSATION;
+    const userContext = (convoCache?.context as any) || { level: 'BEGINNER', goals: [] };
     const context = this.contextService.buildContext(userContext, messages);
     const prompt = this.promptService.getUserPrompt(dto.content);
     const requestId = `ai-${Date.now()}-${uuidv4().substring(0, 8)}`;
@@ -70,7 +66,7 @@ export class ConversationsService {
     const gatewayResponse = await this.aiGateway.generate(
       prompt,
       context,
-      conversation.mode,
+      mode,
       userId,
       requestId,
     );
@@ -79,25 +75,19 @@ export class ConversationsService {
     const assistantMessage = await this.prisma.conversationMessage.create({
       data: {
         conversationId,
-        role: 'ASSISTANT',
-        content: aiResponse.content,
-        analysis: { corrections: [], suggestions: ["Try expanding your sentence."] },
-        tokensUsed: aiResponse.usage?.totalTokens || 0,
-        latency: aiResponse.latency || 0,
-      },
-    });
-
-    await this.prisma.conversation.update({
-      where: { id: conversationId },
-      data: {
-        messageCount: { increment: 2 },
-        tokenCount: { increment: aiResponse.usage?.totalTokens || 0 },
+        sender: 'ai',
+        text: aiResponse.content,
+        metadata: {
+          analysis: { corrections: [], suggestions: ["Try expanding your sentence."] },
+          tokensUsed: aiResponse.usage?.totalTokens || 0,
+          latency: aiResponse.latency || 0,
+        },
       },
     });
 
     return {
       message: assistantMessage,
-      analysis: assistantMessage.analysis,
+      analysis: (assistantMessage.metadata as any)?.analysis,
     };
   }
 
@@ -106,7 +96,6 @@ export class ConversationsService {
       where: { id },
       include: {
         messages: { orderBy: { createdAt: 'asc' }, take: 50 },
-        feedback: true,
       },
     });
     if (!conversation) throw new NotFoundException('Conversation not found');

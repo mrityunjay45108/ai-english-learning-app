@@ -12,12 +12,18 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint .",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist generated",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:create": "prisma migrate dev --create-only",
     "prisma:deploy": "prisma migrate deploy",
+    "prisma:rollback": "prisma migrate resolve --rolled-back",
     "prisma:seed": "node prisma/seed.js",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "prisma:validate": "prisma validate",
+    "prisma:format": "prisma format",
+    "prisma:push": "prisma db push",
+    "prisma:reset": "prisma migrate reset --force"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

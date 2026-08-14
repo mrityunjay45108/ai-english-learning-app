@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WordDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum WordStatus {
+  ACTIVE
+  ARCHIVED
+  PENDING
+}
+
+enum UserWordStatus {
+  NOT_STARTED
+  LEARNING
+  REVIEWING
+  LEARNED
+}
+
+enum PartOfSpeech {
+  NOUN
+  VERB
+  ADJECTIVE
+  ADVERB
+  PRONOUN
+  PREPOSITION
+  CONJUNCTION
+  INTERJECTION
+}
+
+model VocabularyWord {
+  id            String              @id @default(uuid())
+  word          String              @unique
+  pronunciation String?
+  difficulty    WordDifficulty      @default(BEGINNER)
+  category      String?
+  status        WordStatus          @default(ACTIVE)
+  createdBy     String?             @map("created_by")
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+  meanings      VocabularyMeaning[]
+  userWords     UserVocabulary[]
+
+  @@index([word])
+  @@index([difficulty])
+  @@index([category])
+  @@index([status])
+  @@map("vocabulary_words")
+}
+
+model VocabularyMeaning {
+  id              String         @id @default(uuid())
+  wordId          String         @map("word_id")
+  partOfSpeech    PartOfSpeech   @map("part_of_speech")
+  meaning         String         @db.Text
+  meaningHindi    String?        @map("meaning_hindi") @db.Text
+  exampleSentence String?        @map("example_sentence") @db.Text
+  synonyms        Json?
+  antonyms        Json?
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  word            VocabularyWord @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@index([wordId])
+  @@index([partOfSpeech])
+  @@map("vocabulary_meanings")
+}
+
+model UserVocabulary {
+  id           String         @id @default(uuid())
+  userId       String         @map("user_id")
+  wordId       String         @map("word_id")
+  status       UserWordStatus @default(NOT_STARTED)
+  confidence   Int            @default(0)
+  isFavorite   Boolean        @default(false) @map("is_favorite")
+  reviewCount  Int            @default(0) @map("review_count")
+  correctCount Int            @default(0) @map("correct_count")
+  wrongCount   Int            @default(0) @map("wrong_count")
+  lastReviewed DateTime?      @map("last_reviewed")
+  nextReview   DateTime?      @map("next_review")
+  notes        String?        @db.Text
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  word         VocabularyWord @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, wordId])
+  @@index([userId])
+  @@index([wordId])
+  @@index([status])
+  @@index([isFavorite])
+  @@index([nextReview])
+  @@map("user_vocabulary")
+}

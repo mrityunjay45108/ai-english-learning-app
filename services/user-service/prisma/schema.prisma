@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/@prisma/client-user"
+  output   = "./generated/client"
 }
 
 datasource db {
@@ -8,12 +8,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Connection pooling configuration
+// For production, use: postgresql://user:password@host/db?schema=user&connection_limit=5&pool_timeout=45
+// Pool timeout should be less than statement timeout (typically 30s default)
+
 model Profile {
-  id          String   @id @default(uuid())
-  userId      String   @unique @map("user_id")
-  firstName   String?  @map("first_name")
-  lastName    String?  @map("last_name")
-  avatarUrl   String?  @map("avatar_url")
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @map("user_id") @db.Uuid
+  firstName   String?  @map("first_name") @db.VarChar(100)
+  lastName    String?  @map("last_name") @db.VarChar(100)
+  avatarUrl   String?  @map("avatar_url") @db.Text
   bio         String?  @db.Text
   dateOfBirth DateTime? @map("date_of_birth")
   createdAt   DateTime @default(now()) @map("created_at")
@@ -23,13 +27,14 @@ model Profile {
 
   @@map("profiles")
   @@index([userId])
+  @@index([createdAt])
 }
 
 model Preferences {
-  id                  String   @id @default(uuid())
-  userId              String   @unique @map("user_id")
-  locale              String   @default("hi-IN")
-  timezone            String   @default("Asia/Kolkata")
+  id                  String   @id @default(uuid()) @db.Uuid
+  userId              String   @unique @map("user_id") @db.Uuid
+  locale              String   @default("hi-IN") @db.VarChar(10)
+  timezone            String   @default("Asia/Kolkata") @db.VarChar(50)
   learningGoals       Json?    @map("learning_goals")
   dailyGoalMinutes    Int      @default(15) @map("daily_goal_minutes")
   notificationEnabled Boolean  @default(true) @map("notification_enabled")
@@ -41,4 +46,5 @@ model Preferences {
 
   @@map("preferences")
   @@index([userId])
+  @@index([createdAt])
 }

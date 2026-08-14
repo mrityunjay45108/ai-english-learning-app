@@ -1,12 +1,58 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import { PrismaClient } from "../../prisma/generated/client";
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  async onModuleInit() {
-    await this.$connect();
+  private readonly logger = new Logger(PrismaService.name);
+
+  constructor() {
+    super({
+      log: [
+        {
+          emit: 'stdout',
+          level: 'query',
+        },
+        {
+          emit: 'stdout',
+          level: 'error',
+        },
+        {
+          emit: 'stdout',
+          level: 'warn',
+        },
+      ],
+    });
   }
+
+  async onModuleInit() {
+    try {
+      await this.$connect();
+      this.logger.log('✅ Prisma connected successfully to PostgreSQL');
+
+      const dbHealthCheck = await this.$queryRaw`SELECT NOW()`;
+      this.logger.log(`📊 Database health check passed: ${dbHealthCheck}`);
+    } catch (error) {
+      this.logger.error('❌ Failed to connect to Prisma:', error.message);
+      throw error;
+    }
+  }
+
   async onModuleDestroy() {
-    await this.$disconnect();
+    try {
+      await this.$disconnect();
+      this.logger.log('✅ Prisma disconnected successfully');
+    } catch (error) {
+      this.logger.error('❌ Error disconnecting Prisma:', error.message);
+    }
+  }
+
+  async healthCheck(): Promise<boolean> {
+    try {
+      await this.$queryRaw`SELECT 1`;
+      return true;
+    } catch (error) {
+      this.logger.error('Database health check failed:', error.message);
+      return false;
+    }
   }
 }

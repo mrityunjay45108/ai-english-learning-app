@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SpeechJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum SpeechJobType {
+  STT
+  TTS
+  PRONUNCIATION
+}
+
+model SpeechJob {
+  id                 String          @id @default(uuid())
+  userId             String          @map("user_id")
+  type               SpeechJobType
+  status             SpeechJobStatus @default(PENDING)
+  fileKey            String?         @map("file_key")
+  fileSize           Int?            @map("file_size")
+  fileFormat         String?         @map("file_format")
+  audioDuration      Float?          @map("audio_duration")
+  sampleRate         Int?            @map("sample_rate")
+  language           String          @default("en-US")
+  provider           String?
+  transcript         String?         @db.Text
+  confidence         Float?
+  wordTimings        Json?           @map("word_timings")
+  text               String?         @db.Text
+  voice              String?
+  outputKey          String?         @map("output_key")
+  pronunciationScore Float?          @map("pronunciation_score")
+  errorMessage       String?         @map("error_message")
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+  completedAt        DateTime?       @map("completed_at")
+  metadata           AudioMetadata[]
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@map("speech_jobs")
+}
+
+model AudioMetadata {
+  id            String     @id @default(uuid())
+  userId        String     @map("user_id")
+  speechJobId   String?    @map("speech_job_id")
+  fileKey       String     @map("file_key")
+  fileName      String     @map("file_name")
+  fileSize      Int        @map("file_size")
+  fileFormat    String     @map("file_format")
+  sampleRate    Int        @map("sample_rate")
+  audioDuration Float      @map("audio_duration")
+  metadata      Json?
+  createdAt     DateTime   @default(now()) @map("created_at")
+  speechJob     SpeechJob? @relation(fields: [speechJobId], references: [id])
+
+  @@index([userId])
+  @@index([fileKey])
+  @@map("audio_metadata")
+}
+
+model SpeakingSession {
+  id            String         @id @default(uuid())
+  userId        String         @map("user_id")
+  title         String?
+  status        String         @default("active")
+  totalTurns    Int            @default(0) @map("total_turns")
+  totalDuration Int            @default(0) @map("total_duration")
+  completedAt   DateTime?      @map("completed_at")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  turns         SpeakingTurn[]
+
+  @@index([userId])
+  @@map("speaking_sessions")
+}
+
+model SpeakingTurn {
+  id                 String          @id @default(uuid())
+  sessionId          String          @map("session_id")
+  userId             String          @map("user_id")
+  audioKey           String?         @map("audio_key")
+  audioDuration      Float?          @map("audio_duration")
+  transcript         String?         @db.Text
+  grammarIssues      Json?           @map("grammar_issues")
+  fluencyScore       Float?          @map("fluency_score")
+  pronunciationScore Float?          @map("pronunciation_score")
+  overallScore       Float?          @map("overall_score")
+  feedback           Json?
+  correctedText      String?         @map("corrected_text") @db.Text
+  hindiExplanation   String?         @map("hindi_explanation") @db.Text
+  audioResponseKey   String?         @map("audio_response_key")
+  createdAt          DateTime        @default(now()) @map("created_at")
+  session            SpeakingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("speaking_turns")
+}

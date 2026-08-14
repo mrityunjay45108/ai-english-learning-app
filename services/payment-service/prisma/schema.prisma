@@ -1,11 +1,16 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "./generated/client"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// Connection pooling configuration
+// For production, use: postgresql://user:password@host/db?schema=payment&connection_limit=5&pool_timeout=45
+// Pool timeout should be less than statement timeout (typically 30s default)
 
 enum PaymentStatus {
   CREATED
@@ -17,16 +22,16 @@ enum PaymentStatus {
 }
 
 model PaymentOrder {
-  id              String         @id @default(uuid())
-  userId          String         @map("user_id")
-  orderId         String         @unique @map("order_id")
+  id              String         @id @default(uuid()) @db.Uuid
+  userId          String         @map("user_id") @db.Uuid
+  orderId         String         @unique @map("order_id") @db.VarChar(100)
   amount          Int
-  currency        String         @default("INR")
+  currency        String         @default("INR") @db.VarChar(3)
   description     String?        @db.Text
   metadata        Json?
   status          PaymentStatus  @default(CREATED)
-  provider        String         @default("mock")
-  providerOrderId String?        @map("provider_order_id")
+  provider        String         @default("mock") @db.VarChar(50)
+  providerOrderId String?        @map("provider_order_id") @db.VarChar(255)
   expiresAt       DateTime?      @map("expires_at")
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
@@ -39,20 +44,21 @@ model PaymentOrder {
   @@index([orderId])
   @@index([status])
   @@index([createdAt])
+  @@index([expiresAt])
 }
 
 model PaymentTransaction {
-  id              String         @id @default(uuid())
-  orderId         String         @map("order_id")
-  userId          String         @map("user_id")
-  transactionId   String         @unique @map("transaction_id")
+  id              String         @id @default(uuid()) @db.Uuid
+  orderId         String         @map("order_id") @db.Uuid
+  userId          String         @map("user_id") @db.Uuid
+  transactionId   String         @unique @map("transaction_id") @db.VarChar(100)
   amount          Int
-  currency        String         @default("INR")
+  currency        String         @default("INR") @db.VarChar(3)
   status          PaymentStatus
-  provider        String         @default("mock")
-  providerId      String?        @map("provider_id")
+  provider        String         @default("mock") @db.VarChar(50)
+  providerId      String?        @map("provider_id") @db.VarChar(255)
   providerResponse Json?         @map("provider_response")
-  idempotencyKey  String?        @unique @map("idempotency_key")
+  idempotencyKey  String?        @unique @map("idempotency_key") @db.VarChar(255)
   completedAt     DateTime?      @map("completed_at")
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
@@ -65,18 +71,19 @@ model PaymentTransaction {
   @@index([userId])
   @@index([transactionId])
   @@index([status])
+  @@index([createdAt])
 }
 
 model PaymentWebhook {
-  id              String   @id @default(uuid())
-  orderId         String   @map("order_id")
-  provider        String   @default("mock")
-  eventType       String   @map("event_type")
+  id              String   @id @default(uuid()) @db.Uuid
+  orderId         String   @map("order_id") @db.Uuid
+  provider        String   @default("mock") @db.VarChar(50)
+  eventType       String   @map("event_type") @db.VarChar(100)
   payload         Json
-  signature       String?
+  signature       String?  @db.VarChar(500)
   isProcessed     Boolean  @default(false) @map("is_processed")
   processedAt     DateTime? @map("processed_at")
-  errorMessage    String?  @map("error_message")
+  errorMessage    String?  @map("error_message") @db.Text
   createdAt       DateTime @default(now()) @map("created_at")
 
   order           PaymentOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -85,18 +92,19 @@ model PaymentWebhook {
   @@index([orderId])
   @@index([eventType])
   @@index([isProcessed])
+  @@index([createdAt])
 }
 
 model Refund {
-  id              String   @id @default(uuid())
-  transactionId   String   @map("transaction_id")
-  userId          String   @map("user_id")
+  id              String   @id @default(uuid()) @db.Uuid
+  transactionId   String   @map("transaction_id") @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
   amount          Int
-  currency        String   @default("INR")
+  currency        String   @default("INR") @db.VarChar(3)
   reason          String?  @db.Text
-  status          String   @default("PENDING")
-  provider        String   @default("mock")
-  providerRefundId String? @map("provider_refund_id")
+  status          String   @default("PENDING") @db.VarChar(50)
+  provider        String   @default("mock") @db.VarChar(50)
+  providerRefundId String? @map("provider_refund_id") @db.VarChar(255)
   providerResponse Json?   @map("provider_response")
   createdAt       DateTime @default(now()) @map("created_at")
   completedAt     DateTime? @map("completed_at")
@@ -108,4 +116,5 @@ model Refund {
   @@index([transactionId])
   @@index([userId])
   @@index([status])
+  @@index([createdAt])
 }

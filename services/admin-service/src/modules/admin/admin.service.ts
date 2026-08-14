@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { $Enums } from "../../../prisma/generated/client";
 import { AdminRole } from '../../common/enums/role.enum';
 
 @Injectable()
@@ -14,12 +15,16 @@ export class AdminService {
       throw new BadRequestException('Admin with this email already exists');
     }
 
+    const role = data.role
+      ? ($Enums.AdminRole[data.role as keyof typeof $Enums.AdminRole] as unknown as $Enums.AdminRole)
+      : $Enums.AdminRole.ADMIN;
+
     return this.prisma.adminUser.create({
       data: {
         email: data.email,
         password: data.password,
         name: data.name,
-        role: data.role || AdminRole.ADMIN,
+        role,
       },
     });
   }
@@ -61,9 +66,14 @@ export class AdminService {
   async updateAdmin(id: string, data: { name?: string; role?: AdminRole; isActive?: boolean }) {
     await this.getAdminById(id);
 
+    const updateData: any = { ...data };
+    if (updateData.role) {
+      updateData.role = $Enums.AdminRole[updateData.role as keyof typeof $Enums.AdminRole];
+    }
+
     return this.prisma.adminUser.update({
       where: { id },
-      data,
+      data: updateData,
     });
   }
 

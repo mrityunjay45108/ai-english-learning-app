@@ -1,11 +1,16 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "./generated/client"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// Connection pooling configuration
+// For production, use: postgresql://user:password@host/db?schema=subscription&connection_limit=5&pool_timeout=45
+// Pool timeout should be less than statement timeout (typically 30s default)
 
 enum SubscriptionStatus {
   TRIALING
@@ -29,11 +34,11 @@ enum PlanStatus {
 }
 
 model Plan {
-  id            String         @id @default(uuid())
-  name          String         @unique
+  id            String         @id @default(uuid()) @db.Uuid
+  name          String         @unique @db.VarChar(255)
   description   String?        @db.Text
   price         Int
-  currency      String         @default("INR")
+  currency      String         @default("INR") @db.VarChar(3)
   interval      BillingCycle
   trialDays     Int?           @map("trial_days")
   status        PlanStatus     @default(ACTIVE)
@@ -46,13 +51,14 @@ model Plan {
   @@map("plans")
   @@index([name])
   @@index([status])
+  @@index([createdAt])
 }
 
 model PlanFeature {
-  id           String   @id @default(uuid())
-  planId       String   @map("plan_id")
-  featureKey   String   @map("feature_key")
-  featureValue String   @map("feature_value")
+  id           String   @id @default(uuid()) @db.Uuid
+  planId       String   @map("plan_id") @db.Uuid
+  featureKey   String   @map("feature_key") @db.VarChar(100)
+  featureValue String   @map("feature_value") @db.VarChar(500)
   description  String?  @db.Text
   createdAt    DateTime @default(now()) @map("created_at")
   plan         Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
@@ -60,13 +66,14 @@ model PlanFeature {
   @@map("plan_features")
   @@index([planId])
   @@index([featureKey])
+  @@index([createdAt])
   @@unique([planId, featureKey])
 }
 
 model Subscription {
-  id                 String             @id @default(uuid())
-  userId             String             @unique @map("user_id")
-  planId             String             @map("plan_id")
+  id                 String             @id @default(uuid()) @db.Uuid
+  userId             String             @unique @map("user_id") @db.Uuid
+  planId             String             @map("plan_id") @db.Uuid
   status             SubscriptionStatus @default(PENDING)
   trialStart         DateTime?          @map("trial_start")
   trialEnd           DateTime?          @map("trial_end")
@@ -75,8 +82,8 @@ model Subscription {
   cancelAtPeriodEnd  Boolean            @default(false) @map("cancel_at_period_end")
   cancelledAt        DateTime?          @map("cancelled_at")
   gracePeriodEnd     DateTime?          @map("grace_period_end")
-  paymentProvider    String?            @map("payment_provider")
-  providerId         String?            @map("provider_id")
+  paymentProvider    String?            @map("payment_provider") @db.VarChar(50)
+  providerId         String?            @map("provider_id") @db.VarChar(255)
   metadata           Json?
   createdAt          DateTime           @default(now()) @map("created_at")
   updatedAt          DateTime           @updatedAt @map("updated_at")
@@ -87,15 +94,17 @@ model Subscription {
   @@index([userId])
   @@index([planId])
   @@index([status])
+  @@index([createdAt])
+  @@index([currentPeriodEnd])
 }
 
 model SubscriptionEvent {
-  id             String       @id @default(uuid())
-  subscriptionId String       @map("subscription_id")
-  userId         String       @map("user_id")
-  eventType      String       @map("event_type")
-  oldStatus      String?      @map("old_status")
-  newStatus      String?      @map("new_status")
+  id             String       @id @default(uuid()) @db.Uuid
+  subscriptionId String       @map("subscription_id") @db.Uuid
+  userId         String       @map("user_id") @db.Uuid
+  eventType      String       @map("event_type") @db.VarChar(100)
+  oldStatus      String?      @map("old_status") @db.VarChar(50)
+  newStatus      String?      @map("new_status") @db.VarChar(50)
   metadata       Json?
   createdAt      DateTime     @default(now()) @map("created_at")
   subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
@@ -103,4 +112,6 @@ model SubscriptionEvent {
   @@map("subscription_events")
   @@index([subscriptionId])
   @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
 }

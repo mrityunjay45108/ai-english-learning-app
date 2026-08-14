@@ -1,11 +1,16 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "./generated/client"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// Connection pooling configuration
+// For production, use: postgresql://user:password@host/db?schema=grammar&connection_limit=5&pool_timeout=45
+// Pool timeout should be less than statement timeout (typically 30s default)
 
 enum DifficultyLevel {
   BEGINNER
@@ -32,15 +37,15 @@ enum UserProgressStatus {
 }
 
 model GrammarTopic {
-  id          String        @id @default(uuid())
-  name        String        @unique
+  id          String        @id @default(uuid()) @db.Uuid
+  name        String        @unique @db.VarChar(255)
   description String?       @db.Text
-  category    String
+  category    String        @db.VarChar(100)
   difficulty  DifficultyLevel @default(BEGINNER)
   orderIndex  Int           @default(0) @map("order_index")
   status      TopicStatus   @default(ACTIVE)
-  icon        String?
-  color       String?       @default("#6366f1")
+  icon        String?       @db.VarChar(10)
+  color       String?       @default("#6366f1") @db.VarChar(7)
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
   rules       GrammarRule[]
@@ -52,12 +57,13 @@ model GrammarTopic {
   @@index([category])
   @@index([difficulty])
   @@index([status])
+  @@index([createdAt])
 }
 
 model GrammarRule {
-  id               String    @id @default(uuid())
-  topicId          String    @map("topic_id")
-  title            String
+  id               String    @id @default(uuid()) @db.Uuid
+  topicId          String    @map("topic_id") @db.Uuid
+  title            String    @db.VarChar(255)
   ruleText         String    @db.Text @map("rule_text")
   explanation      String?   @db.Text
   explanationHindi String?   @map("explanation_hindi") @db.Text
@@ -71,15 +77,16 @@ model GrammarRule {
   @@map("grammar_rules")
   @@index([topicId])
   @@index([orderIndex])
+  @@index([createdAt])
 }
 
 model GrammarExercise {
-  id               String         @id @default(uuid())
-  topicId          String         @map("topic_id")
-  ruleId           String?        @map("rule_id")
+  id               String         @id @default(uuid()) @db.Uuid
+  topicId          String         @map("topic_id") @db.Uuid
+  ruleId           String?        @map("rule_id") @db.Uuid
   question         String         @db.Text
   options          Json?
-  correctAnswer    String         @map("correct_answer")
+  correctAnswer    String         @map("correct_answer") @db.VarChar(500)
   type             ExerciseType   @default(MULTIPLE_CHOICE)
   difficulty       DifficultyLevel @default(BEGINNER)
   explanation      String?        @db.Text
@@ -96,12 +103,13 @@ model GrammarExercise {
   @@index([ruleId])
   @@index([difficulty])
   @@index([type])
+  @@index([createdAt])
 }
 
 model UserGrammarProgress {
-  id            String            @id @default(uuid())
-  userId        String            @map("user_id")
-  topicId       String            @map("topic_id")
+  id            String            @id @default(uuid()) @db.Uuid
+  userId        String            @map("user_id") @db.Uuid
+  topicId       String            @map("topic_id") @db.Uuid
   status        UserProgressStatus @default(NOT_STARTED)
   score         Int               @default(0)
   maxScore      Int?              @map("max_score")
@@ -118,5 +126,6 @@ model UserGrammarProgress {
   @@index([userId])
   @@index([topicId])
   @@index([status])
+  @@index([createdAt])
   @@unique([userId, topicId])
 }

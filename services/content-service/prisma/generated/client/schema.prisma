@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+enum LessonStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ContentType {
+  TEXT
+  AUDIO
+  VIDEO
+  IMAGE
+  EXERCISE
+  QUIZ
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+// ============================================
+// LESSON CONTENT (Main entity)
+// ============================================
+model LessonContent {
+  id          String          @id @default(uuid())
+  lessonId    String          @unique @map("lesson_id")
+  title       String
+  description String?         @db.Text
+  status      LessonStatus    @default(DRAFT)
+  contentType ContentType     @default(TEXT)
+  difficulty  DifficultyLevel @default(BEGINNER)
+
+  content  Json?
+  metadata Json?
+
+  version           Int     @default(1)
+  previousVersionId String? @map("previous_version_id")
+
+  publishedAt DateTime? @map("published_at")
+  reviewedBy  String?   @map("reviewed_by")
+  reviewedAt  DateTime? @map("reviewed_at")
+
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  sections        LessonSection[]
+  assets          ContentAsset[]
+  tags            LessonContentTag[]
+  versionHistory  LessonContent[]    @relation("VersionHistory")
+  previousVersion LessonContent?     @relation("VersionHistory", fields: [previousVersionId], references: [id])
+
+  @@index([lessonId])
+  @@index([status])
+  @@index([contentType])
+  @@index([createdBy])
+  @@index([publishedAt])
+  @@map("lesson_contents")
+}
+
+// ============================================
+// LESSON SECTIONS
+// ============================================
+model LessonSection {
+  id          String  @id @default(uuid())
+  lessonId    String  @map("lesson_id")
+  title       String
+  description String? @db.Text
+  orderIndex  Int     @map("order_index")
+  content     Json?
+  type        String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  lesson LessonContent @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([lessonId, orderIndex])
+  @@index([lessonId])
+  @@index([orderIndex])
+  @@map("lesson_sections")
+}
+
+// ============================================
+// CONTENT ASSETS
+// ============================================
+model ContentAsset {
+  id        String  @id @default(uuid())
+  lessonId  String  @map("lesson_id")
+  sectionId String? @map("section_id")
+
+  type        ContentType
+  title       String
+  description String?     @db.Text
+
+  s3Key  String  @map("s3_key")
+  bucket String  @default("english-learning-content")
+  url    String?
+
+  fileSize Int?    @map("file_size")
+  mimeType String? @map("mime_type")
+  duration Int?
+  width    Int?
+  height   Int?
+
+  isProcessed Boolean   @default(false) @map("is_processed")
+  processedAt DateTime? @map("processed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  lesson LessonContent @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId])
+  @@index([sectionId])
+  @@index([type])
+  @@index([s3Key])
+  @@map("content_assets")
+}
+
+// ============================================
+// CONTENT TAG
+// ============================================
+model ContentTag {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String? @db.Text
+  color       String? @default("#6366f1")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  lessons LessonContentTag[]
+
+  @@index([name])
+  @@map("content_tags")
+}
+
+// ============================================
+// LESSON CONTENT TAGS
+// ============================================
+model LessonContentTag {
+  lessonId   String   @map("lesson_id")
+  tagId      String   @map("tag_id")
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  lesson LessonContent @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  tag    ContentTag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([lessonId, tagId])
+  @@map("lesson_content_tags")
+}

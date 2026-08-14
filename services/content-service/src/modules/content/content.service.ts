@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { ContentRepository } from './content.repository';
 import { CreateLessonContentDto, UpdateLessonContentDto, ContentQueryDto } from '../../common/dto/content.dto';
-import { LessonContent } from '@prisma/client-content';
+import { LessonContent } from "../../../prisma/generated/client";
 
 @Injectable()
 export class ContentService {

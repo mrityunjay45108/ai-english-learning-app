@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Kafka, Consumer } from 'kafkajs';
-import { GamificationService } from '../gamification/gamification.service';
+// import { GamificationService } from '../gamification/gamification.service';
 import { config } from '../../config/environment.config';
 
 @Injectable()
@@ -8,7 +8,9 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
   private kafka: Kafka;
   private consumer: Consumer;
 
-  constructor(private readonly gamificationService: GamificationService) {
+  constructor(
+    // private readonly gamificationService: GamificationService,  // Temporarily disabled
+  ) {
     this.kafka = new Kafka({
       clientId: config.kafka.clientId,
       brokers: config.kafka.brokers,
@@ -46,6 +48,9 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async handleEvent(topic: string, event: any) {
+    console.log('⚠️ Gamification Service temporarily disabled - event ignored:', { topic, event });
+    // Gamification service calls are temporarily disabled
+    /*
     switch (topic) {
       case 'lesson-events':
         if (event.event === 'lesson.completed') await this.gamificationService.handleLessonCompleted(event);
@@ -63,5 +68,6 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
         if (event.event === 'assessment.completed') await this.gamificationService.handleAssessmentCompleted(event);
         break;
     }
+    */
   }
 }

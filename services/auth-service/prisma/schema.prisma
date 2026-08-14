@@ -1,12 +1,16 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/@prisma/client-auth"
+  output   = "./generated/client"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// Connection pooling configuration
+// For production, use: postgresql://user:password@host/db?schema=auth&connection_limit=5&pool_timeout=45
+// Pool timeout should be less than statement timeout (typically 30s default)
 
 enum Role {
   STUDENT
@@ -18,12 +22,12 @@ enum Role {
 }
 
 model User {
-  id             String         @id @default(uuid())
-  email          String         @unique
-  phone          String?        @unique
-  passwordHash   String         @map("password_hash")
-  firstName      String?        @map("first_name")
-  lastName       String?        @map("last_name")
+  id             String         @id @default(uuid()) @db.Uuid
+  email          String         @unique @db.VarChar(255)
+  phone          String?        @unique @db.VarChar(20)
+  passwordHash   String         @map("password_hash") @db.VarChar(255)
+  firstName      String?        @map("first_name") @db.VarChar(100)
+  lastName       String?        @map("last_name") @db.VarChar(100)
   role           Role           @default(USER)
   isVerified     Boolean        @default(false) @map("is_verified")
   isActive       Boolean        @default(true) @map("is_active")
@@ -38,12 +42,13 @@ model User {
   @@index([email])
   @@index([phone])
   @@index([role])
+  @@index([createdAt])
 }
 
 model RefreshToken {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  userId    String   @map("user_id")
+  id        String   @id @default(uuid()) @db.Uuid
+  token     String   @unique @db.VarChar(500)
+  userId    String   @map("user_id") @db.Uuid
   isRevoked Boolean  @default(false) @map("is_revoked")
   expiresAt DateTime @map("expires_at")
   createdAt DateTime @default(now()) @map("created_at")
@@ -54,13 +59,14 @@ model RefreshToken {
   @@index([userId])
   @@index([token])
   @@index([expiresAt])
+  @@index([createdAt])
 }
 
 model Otp {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  code      String
-  purpose   String   // 'email_verification', 'password_reset', 'login'
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  code      String   @db.VarChar(10)
+  purpose   String   @db.VarChar(50)  // 'email_verification', 'password_reset', 'login'
   expiresAt DateTime @map("expires_at")
   attempts  Int      @default(0)
   used      Boolean  @default(false)
@@ -72,4 +78,5 @@ model Otp {
   @@index([userId])
   @@index([code])
   @@index([expiresAt])
+  @@index([createdAt])
 }

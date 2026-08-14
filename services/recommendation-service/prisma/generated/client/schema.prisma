@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RecommendationType {
+  LESSON
+  GRAMMAR_TOPIC
+  VOCABULARY_WORD
+  SPEAKING_PRACTICE
+  ASSESSMENT
+  REVIEW
+}
+
+enum RecommendationStatus {
+  ACTIVE
+  COMPLETED
+  DISMISSED
+  EXPIRED
+}
+
+model UserLearningSignal {
+  id                String   @id @default(uuid())
+  userId            String   @unique @map("user_id")
+  englishLevel      String   @default("BEGINNER") @map("english_level")
+  lessonsCompleted  Int      @default(0) @map("lessons_completed")
+  grammarExercises  Int      @default(0) @map("grammar_exercises")
+  vocabularyLearned Int      @default(0) @map("vocabulary_learned")
+  speakingPractices Int      @default(0) @map("speaking_practices")
+  grammarScore      Float    @default(0) @map("grammar_score")
+  vocabularyScore   Float    @default(0) @map("vocabulary_score")
+  speakingScore     Float    @default(0) @map("speaking_score")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("user_learning_signals")
+}
+
+model Recommendation {
+  id               String               @id @default(uuid())
+  userId           String               @map("user_id")
+  type             RecommendationType
+  targetId         String               @map("target_id")
+  targetTitle      String               @map("target_title")
+  targetMetadata   Json?                @map("target_metadata")
+  score            Float                @default(0)
+  reason           String?              @db.Text
+  status           RecommendationStatus @default(ACTIVE)
+  expiresAt        DateTime?            @map("expires_at")
+  feedbackReceived Boolean              @default(false) @map("feedback_received")
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@map("recommendations")
+}
+
+model RecommendationFeedback {
+  id               String   @id @default(uuid())
+  recommendationId String   @map("recommendation_id")
+  userId           String   @map("user_id")
+  action           String
+  timeSpent        Int?     @map("time_spent")
+  rating           Int?
+  feedbackText     String?  @map("feedback_text") @db.Text
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([recommendationId])
+  @@index([userId])
+  @@map("recommendation_feedback")
+}

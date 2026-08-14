@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from '../../database/redis.service';
 import { CreateSubscriptionDto, CancelSubscriptionDto } from '../../common/dto/subscription.dto';
-import { SubscriptionStatus } from '@prisma/client';
+import { SubscriptionStatus } from "../../../prisma/generated/client";
 
 @Injectable()
 export class SubscriptionService {

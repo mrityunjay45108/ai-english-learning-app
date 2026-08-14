@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model RawEvent {
+  id             String   @id @default(uuid())
+  eventId        String   @unique @map("event_id")
+  eventType      String   @map("event_type")
+  eventVersion   String   @map("event_version")
+  occurredAt     DateTime @map("occurred_at")
+  producer       String
+  userId         String?  @map("user_id")
+  requestId      String?  @map("request_id")
+  correlationId  String?  @map("correlation_id")
+  payload        Json
+  kafkaTopic     String?  @map("kafka_topic")
+  kafkaPartition Int?     @map("kafka_partition")
+  kafkaOffset    String?  @map("kafka_offset")
+  processedAt    DateTime @default(now()) @map("processed_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([eventType])
+  @@index([occurredAt])
+  @@index([userId])
+  @@map("raw_events")
+}
+
+model DailyAggregation {
+  id                  String   @id @default(uuid())
+  date                DateTime @unique
+  dateKey             String   @unique @map("date_key")
+  dailyActiveUsers    Int      @default(0) @map("daily_active_users")
+  newUsers            Int      @default(0) @map("new_users")
+  lessonsStarted      Int      @default(0) @map("lessons_started")
+  lessonsCompleted    Int      @default(0) @map("lessons_completed")
+  avgLessonScore      Float    @default(0) @map("avg_lesson_score")
+  speakingSessions    Int      @default(0) @map("speaking_sessions")
+  avgSpeakingScore    Float    @default(0) @map("avg_speaking_score")
+  grammarExercises    Int      @default(0) @map("grammar_exercises")
+  avgGrammarScore     Float    @default(0) @map("avg_grammar_score")
+  vocabularyLearned   Int      @default(0) @map("vocabulary_learned")
+  aiMessages          Int      @default(0) @map("ai_messages")
+  avgAILatency        Float    @default(0) @map("avg_ai_latency")
+  newSubscriptions    Int      @default(0) @map("new_subscriptions")
+  subscriptionRevenue Int      @default(0) @map("subscription_revenue")
+  totalTimeMinutes    Int      @default(0) @map("total_time_minutes")
+  avgSessionMinutes   Float    @default(0) @map("avg_session_minutes")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@index([dateKey])
+  @@map("daily_aggregations")
+}
+
+model MonthlyAggregation {
+  id                    String   @id @default(uuid())
+  month                 DateTime @unique
+  monthKey              String   @unique @map("month_key")
+  monthlyActiveUsers    Int      @default(0) @map("monthly_active_users")
+  totalUsers            Int      @default(0) @map("total_users")
+  totalLessonsCompleted Int      @default(0) @map("total_lessons_completed")
+  avgMonthlyLessons     Float    @default(0) @map("avg_monthly_lessons")
+  totalSubscriptions    Int      @default(0) @map("total_subscriptions")
+  conversionRate        Float    @default(0) @map("conversion_rate")
+  monthlyRevenue        Int      @default(0) @map("monthly_revenue")
+  retentionRate         Float    @default(0) @map("retention_rate")
+  churnRate             Float    @default(0) @map("churn_rate")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@index([monthKey])
+  @@map("monthly_aggregations")
+}
+
+model UserAnalytics {
+  id                    String    @id @default(uuid())
+  userId                String    @unique @map("user_id")
+  firstActivityAt       DateTime  @map("first_activity_at")
+  lastActivityAt        DateTime  @map("last_activity_at")
+  totalDaysActive       Int       @default(0) @map("total_days_active")
+  totalLessonsCompleted Int       @default(0) @map("total_lessons_completed")
+  totalSpeakingSessions Int       @default(0) @map("total_speaking_sessions")
+  totalAIMessages       Int       @default(0) @map("total_ai_messages")
+  totalTimeMinutes      Int       @default(0) @map("total_time_minutes")
+  avgLessonScore        Float     @default(0) @map("avg_lesson_score")
+  avgSpeakingScore      Float     @default(0) @map("avg_speaking_score")
+  currentPlan           String?   @map("current_plan")
+  subscriptionStartAt   DateTime? @map("subscription_start_at")
+  isActive              Boolean   @default(true) @map("is_active")
+  isAnonymized          Boolean   @default(false) @map("is_anonymized")
+  anonymizedAt          DateTime? @map("anonymized_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("user_analytics")
+}
