@@ -1,29 +1,27 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { Observable } from 'rxjs';
 import * as jwt from 'jsonwebtoken';
 import { config } from '../config/environment.config';
-import { RequestContextService } from '../services/request-context.service';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private readonly requestContext: RequestContextService) {}
-
-  canActivate(context: ExecutionContext): boolean {
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers['authorization'];
-    if (!authHeader) throw new UnauthorizedException('No token provided');
+    const token = request.headers.authorization?.split(' ')[1];
 
-    const token = authHeader.split(' ')[1];
-    if (!token) throw new UnauthorizedException('Invalid token format');
+    if (!token) {
+      throw new UnauthorizedException('No token provided');
+    }
 
     try {
-      const decoded: any = jwt.verify(token, config.jwt.secret);
-      this.requestContext.userId = decoded.sub || decoded.userId;
-      this.requestContext.userEmail = decoded.email;
-      this.requestContext.userRole = decoded.role || 'STUDENT';
+      const secret = config.app.jwtSecret || 'default-secret';
+      const decoded = jwt.verify(token, secret);
       request.user = decoded;
       return true;
-    } catch (err) {
-      throw new UnauthorizedException('Invalid or expired token');
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
     }
   }
 }

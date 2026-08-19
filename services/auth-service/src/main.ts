@@ -6,6 +6,7 @@ import { config } from './config/environment.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors({ origin: true, credentials: true, methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS" });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -17,7 +18,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1');
   const port = config.app.port;
-  await app.listen(port, '0.0.0.0');
+  await app.listen(process.env.PORT || 3001, "0.0.0.0");
   console.log(`🚀 Auth Service running on http://127.0.0.1:${port}`);
 }
 bootstrap();

@@ -1,64 +1,106 @@
-'use client';
+"use client";
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/stores/auth.store';
-import toast from 'react-hot-toast';
-
-export default function AdminLoginPage() {
-  const [email, setEmail] = useState('superadmin@englishlearning.com');
-  const [password, setPassword] = useState('MySecret@123');
-  const login = useAuthStore((state) => state.login);
+export default function LoginPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
+
     try {
-      await login(email, password);
-      toast.success('Authenticated as Admin');
-      router.push('/dashboard');
+      const res = await fetch("http://localhost:3000/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        if (data.accessToken) {
+          localStorage.setItem("accessToken", data.accessToken);
+          if (data.refreshToken) localStorage.setItem("refreshToken", data.refreshToken);
+          if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+        }
+        router.push("/dashboard");
+      } else {
+        const errorMsg = Array.isArray(data.message)
+          ? data.message.join(", ")
+          : data.message || "Invalid email or password";
+        setError(errorMsg);
+      }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Admin authentication failed');
+      setError("Failed to connect to API Gateway: " + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
-      <div className="max-w-md w-full space-y-8 bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700">
-        <div>
-          <h2 className="text-center text-3xl font-extrabold text-white">Admin Portal</h2>
-          <p className="mt-2 text-center text-sm text-gray-400">Enter privileged credentials to proceed</p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-gray-300">Admin Email</label>
-              <input
-                type="email"
-                required
-                className="mt-1 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-300">Password</label>
-              <input
-                type="password"
-                required
-                className="mt-1 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+    <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-slate-800/80 border border-slate-700 p-8 rounded-2xl shadow-xl backdrop-blur">
+        <h2 className="text-2xl font-bold text-center mb-2">Welcome Back</h2>
+        <p className="text-slate-400 text-sm text-center mb-6">Sign in to continue your English learning</p>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
+            {error}
           </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              suppressHydrationWarning
+              className="w-full bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 transition"
+              placeholder="you@example.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">Password</label>
+            <input
+              type="password"
+              name="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              suppressHydrationWarning
+              className="w-full bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 transition"
+              placeholder="••••••••"
+            />
+          </div>
+
           <button
             type="submit"
-            className="w-full py-2.5 px-4 border border-transparent rounded-md text-white bg-indigo-600 hover:bg-indigo-700 font-medium shadow-sm transition-colors"
+            disabled={loading}
+            suppressHydrationWarning
+            className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium rounded-lg shadow-lg transition"
           >
-            Access Admin Console
+            {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
+
+        <p className="text-center text-sm text-slate-400 mt-6">
+          Do not have an account?{" "}
+          <Link href="/auth/register" className="text-indigo-400 hover:underline">
+            Register
+          </Link>
+        </p>
       </div>
     </div>
   );

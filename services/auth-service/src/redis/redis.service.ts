@@ -12,47 +12,76 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       socket: {
         host: process.env.REDIS_HOST || "library-metal-space-48644.db.redis.io",
         port: parseInt(process.env.REDIS_PORT || "16483", 10),
+        connectTimeout: 10000,
+        reconnectStrategy: (retries) => Math.min(retries * 100, 3000),
       },
     });
 
-    this.client.on("error", (err) => console.error("❌ Redis Client Error:", err));
+    this.client.on("error", (err: unknown) => 
+      console.warn("⚠️ Redis Cloud Warning (Non-blocking):", (err as Error).message)
+    );
     this.client.on("connect", () => console.log("✅ Connected to Redis Cloud Successfully!"));
   }
 
   async onModuleInit() {
-    if (!this.client.isOpen) {
-      await this.client.connect();
+    try {
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+    } catch (error: unknown) {
+      console.warn("⚠️ Redis initial connection deferred, running app in fallback mode.");
     }
   }
 
   async onModuleDestroy() {
-    if (this.client.isOpen) {
+    if (this.client && this.client.isOpen) {
       await this.client.disconnect();
     }
   }
 
   async set(key: string, value: any) {
-    await this.client.set(key, typeof value === "string" ? value : JSON.stringify(value));
-  }
-
- async get<T>(key: string): Promise<T | null> {
-  const data = await this.client.get(key as any);
-  if (!data) return null;
-  if (typeof data === "string") {
     try {
-      return JSON.parse(data) as T;
-    } catch {
-      return data as unknown as T;
+      if (!this.client.isOpen) return;
+      await this.client.set(key, typeof value === "string" ? value : JSON.stringify(value));
+    } catch (error: unknown) {
+      console.error("Redis set error:", (error as Error).message);
     }
   }
-  return data as unknown as T;
-}
+
+  async get<T>(key: string): Promise<T | null> {
+    try {
+      if (!this.client.isOpen) return null;
+      const data = await this.client.get(key as any);
+      if (!data) return null;
+      if (typeof data === "string") {
+        try {
+          return JSON.parse(data) as T;
+        } catch {
+          return data as unknown as T;
+        }
+      }
+      return data as unknown as T;
+    } catch (error: unknown) {
+      console.error("Redis get error:", (error as Error).message);
+      return null;
+    }
+  }
 
   async delete(key: string) {
-    await this.client.del(key);
+    try {
+      if (!this.client.isOpen) return;
+      await this.client.del(key);
+    } catch (error: unknown) {
+      console.error("Redis delete error:", (error as Error).message);
+    }
   }
 
   async flushAll() {
-    await this.client.flushAll();
+    try {
+      if (!this.client.isOpen) return;
+      await this.client.flushAll();
+    } catch (error: unknown) {
+      console.error("Redis flushAll error:", (error as Error).message);
+    }
   }
 }

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
+import { SpeakingModule } from './modules/speaking/speaking.module';
 import { SpeechController } from './modules/speech/speech.controller';
 import { SpeechService } from './modules/speech/speech.service';
 import { STTService } from './modules/stt/stt.service';
@@ -14,6 +15,7 @@ import { RedisService } from './database/redis.service';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     AuthModule,
+    SpeakingModule,
   ],
   controllers: [HealthController, SpeechController],
   providers: [

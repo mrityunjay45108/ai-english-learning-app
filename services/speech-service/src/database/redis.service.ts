@@ -1,52 +1,101 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import Redis from 'ioredis';
-import { config } from '../config/environment.config';
+import { Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
+import { createClient, RedisClientType } from "redis";
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-  private client: Redis;
+  private client: RedisClientType;
 
   constructor() {
-    this.client = new Redis({
-      host: config.redis.host,
-      port: config.redis.port,
-      password: config.redis.password,
-      retryStrategy: (times) => Math.min(times * 50, 2000),
-      maxRetriesPerRequest: 3,
-      lazyConnect: true,
+    this.client = createClient({
+      username: process.env.REDIS_USERNAME || process.env.REDIS_USER || "default",
+      password: process.env.REDIS_PASSWORD,
+      socket: {
+        host: process.env.REDIS_HOST || "library-metal-space-48644.db.redis.io",
+        port: parseInt(process.env.REDIS_PORT || "16483", 10),
+        connectTimeout: 10000,
+        reconnectStrategy: (retries: number) => Math.min(retries * 100, 3000),
+      },
     });
+
+    this.client.on("error", (err: unknown) => 
+      console.warn("⚠️ Redis Cloud Warning (Non-blocking):", (err as Error).message)
+    );
+    this.client.on("connect", () => console.log("✅ Connected to Redis Cloud Successfully!"));
   }
 
   async onModuleInit() {
     try {
-      await this.client.connect();
-      console.log('✅ Redis connected for Speech Service');
-    } catch (err) {
-      console.warn('⚠️ Redis connection deferred:', err.message);
+      if (!this.client.isOpen) {
+        await this.client.connect();
+      }
+    } catch (error: unknown) {
+      console.warn("⚠️ Redis initial connection deferred, running app in fallback mode.");
     }
   }
 
   async onModuleDestroy() {
-    try { await this.client.quit(); } catch (e) {}
+    if (this.client && this.client.isOpen) {
+      await this.client.disconnect();
+    }
   }
 
-  async get(key: string): Promise<string | null> {
-    try { return await this.client.get(key); } catch (e) { return null; }
-  }
-
-  async set(key: string, value: string, ttl?: number): Promise<void> {
+  async set(key: string, value: any, expireSeconds?: number) {
     try {
-      if (ttl) await this.client.setex(key, ttl, value);
-      else await this.client.set(key, value);
-    } catch (e) {}
+      if (!this.client.isOpen) return;
+      const serialized = typeof value === "string" ? value : JSON.stringify(value);
+      if (expireSeconds) {
+        await this.client.setEx(key, expireSeconds, serialized);
+      } else {
+        await this.client.set(key, serialized);
+      }
+    } catch (error: unknown) {
+      console.error("Redis set error:", (error as Error).message);
+    }
+  }
+
+  async get<T>(key: string): Promise<T | null> {
+    try {
+      if (!this.client.isOpen) return null;
+      const data = await this.client.get(key as any);
+      if (!data) return null;
+      if (typeof data === "string") {
+        try {
+          return JSON.parse(data) as T;
+        } catch {
+          return data as unknown as T;
+        }
+      }
+      return data as unknown as T;
+    } catch (error: unknown) {
+      console.error("Redis get error:", (error as Error).message);
+      return null;
+    }
+  }
+
+  // Supporting 3 arguments for compatibility
+  async setJson(key: string, value: any, expireSeconds?: number) {
+    return await this.set(key, value, expireSeconds);
   }
 
   async getJson<T>(key: string): Promise<T | null> {
-    const data = await this.get(key);
-    return data ? JSON.parse(data) : null;
+    return await this.get<T>(key);
   }
 
-  async setJson<T>(key: string, value: T, ttl?: number): Promise<void> {
-    await this.set(key, JSON.stringify(value), ttl);
+  async delete(key: string) {
+    try {
+      if (!this.client.isOpen) return;
+      await this.client.del(key);
+    } catch (error: unknown) {
+      console.error("Redis delete error:", (error as Error).message);
+    }
+  }
+
+  async flushAll() {
+    try {
+      if (!this.client.isOpen) return;
+      await this.client.flushAll();
+    } catch (error: unknown) {
+      console.error("Redis flushAll error:", (error as Error).message);
+    }
   }
 }

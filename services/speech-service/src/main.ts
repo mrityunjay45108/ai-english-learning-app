@@ -10,9 +10,9 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
   const port = process.env.PORT || 3012;
   await app.listen(port);
-  console.log('🎤 Speech Service running on http://localhost:' + port);
-  console.log('📋 Health: http://localhost:' + port + '/api/v1/health');
-  console.log('🗣️ Speech: http://localhost:' + port + '/api/v1/speech');
+  console.log(' Speech Service running on http://localhost:' + port);
+  console.log(' Health: http://localhost:' + port + '/api/v1/health');
+  console.log(' Speech: http://localhost:' + port + '/api/v1/speech');
 }
 bootstrap().catch((error) => {
   console.error('Failed to start Speech Service:', error);

@@ -1,51 +1,44 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useAuthStore } from '../../store/auth.store';
-
-export const LoginScreen = () => {
-  const [email, setEmail] = useState('student_gateway@englishlearning.com');
-  const [password, setPassword] = useState('MySecret@123');
-  const login = useAuthStore((state) => state.login);
+import React from 'react';
+import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+export default function LoginScreen({ navigation }: any) {
 
   const handleLogin = async () => {
     try {
-      await login(email, password);
-    } catch (err: any) {
-      Alert.alert('Login Failed', err.message || 'Invalid Credentials');
+      // 1. Login API call yahan hoti hai...
+      // Maan lijiye login success ho gaya aur token save kar liya:
+      await AsyncStorage.setItem('user_token', 'mock_token_123');
+
+      // 2. Check karein ki user ke paas subscription hai ya nahi
+      const hasSubscribed = await AsyncStorage.getItem('is_subscribed');
+
+      if (hasSubscribed === 'true') {
+        // Agar subscription active hai, toh direct Main App (Dashboard / AI Coach) par bhejein
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'MainTabs' as never }],
+        });
+      } else {
+        // Agar subscription nahi hai, toh ₹1 Trial Paywall screen khol dein
+        navigation.navigate('PaywallScreen' as never);
+      }
+
+    } catch (error) {
+      console.error('Login failed', error);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>AI English Learning</Text>      <Text style={styles.subtitle}>Hindi se English Seekhein Aasani Se</Text>
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        secureTextEntry
-        onChangeText={setPassword}
-      />
-      
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
+      <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
+        <Text style={styles.btnText}>Login / Get Started</Text>
       </TouchableOpacity>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: '#FFFFFF' },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#4F46E5', textAlign: 'center' },
-  subtitle: { fontSize: 14, color: '#6B7280', textAlign: 'center', marginBottom: 32 },
-  input: { borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 10, padding: 14, marginBottom: 16, backgroundColor: '#F9FAFB' },
-  button: { backgroundColor: '#4F46E5', borderRadius: 10, padding: 16, alignItems: 'center' },
-  buttonText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0B0F19' },
+  loginBtn: { backgroundColor: '#7C3AED', padding: 16, borderRadius: 12, width: '80%', alignItems: 'center' },
+  btnText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
 });

@@ -1,13 +1,11 @@
 {
   "expo": {
-    "name": "English Learning AI",
-    "slug": "english-learning-ai",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "userInterfaceStyle": "light",
-    "assetBundlePatterns": ["**/*"],
+    "name": "mobile",
+    "slug": "mobile",
+    "version": "1.1.33",
     "web": {
-      "favicon": "./assets/favicon.png"
+      "bundler": "metro",
+      "backgroundColor": "#030712"
     }
   }
 }

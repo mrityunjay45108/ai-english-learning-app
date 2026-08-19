@@ -1,12 +1,7 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true
-  },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "tests",
-    "**/*.spec.ts"
-  ]
+    "strict": true,
+    "jsx": "react-native"    // ✅ यह LINE जरूरी है
+  }
 }

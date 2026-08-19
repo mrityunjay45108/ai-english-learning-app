@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
-import { PrismaClient } from "../../prisma/generated/client";
+import { PrismaClient } from '../../prisma/generated/client';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
@@ -8,18 +8,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   constructor() {
     super({
       log: [
-        {
-          emit: 'stdout',
-          level: 'query',
-        },
-        {
-          emit: 'stdout',
-          level: 'error',
-        },
-        {
-          emit: 'stdout',
-          level: 'warn',
-        },
+        { emit: 'stdout', level: 'query' },
+        { emit: 'stdout', level: 'error' },
+        { emit: 'stdout', level: 'warn' },
       ],
     });
   }
@@ -30,9 +21,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       this.logger.log('✅ Prisma connected successfully to PostgreSQL');
 
       const dbHealthCheck = await this.$queryRaw`SELECT NOW()`;
-      this.logger.log(`📊 Database health check passed: ${dbHealthCheck}`);
-    } catch (error) {
-      this.logger.error('❌ Failed to connect to Prisma:', error.message);
+      this.logger.log(`📊 Database health check passed: ${JSON.stringify(dbHealthCheck)}`);
+    } catch (error: any) { // <-- yahan ': any' add kiya gaya hai
+      this.logger.error('❌ Failed to connect to Prisma:', error?.message || error);
       throw error;
     }
   }
@@ -41,8 +32,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     try {
       await this.$disconnect();
       this.logger.log('✅ Prisma disconnected successfully');
-    } catch (error) {
-      this.logger.error('❌ Error disconnecting Prisma:', error.message);
+    } catch (error: any) { // <-- yahan ': any' add kiya gaya hai
+      this.logger.error('❌ Error disconnecting Prisma:', error?.message || error);
     }
   }
 
@@ -50,8 +41,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     try {
       await this.$queryRaw`SELECT 1`;
       return true;
-    } catch (error) {
-      this.logger.error('Database health check failed:', error.message);
+    } catch (error: any) { // <-- yahan ': any' add kiya gaya hai
+      this.logger.error('Database health check failed:', error?.message || error);
       return false;
     }
   }

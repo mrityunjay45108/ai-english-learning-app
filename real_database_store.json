@@ -1,0 +1,288 @@
+{
+  "users": [
+    {
+      "id": "usr_db_101",
+      "name": "Mrityunjay Kumar",
+      "email": "mrityunjay@example.com",
+      "xp": 1195,
+      "streak": 8,
+      "badge": "Master",
+      "avatar": "MK",
+      "isUser": true,
+      "updatedAt": "2026-08-15T16:38:32.262Z"
+    }
+  ],
+  "xp_transactions": [
+    {
+      "id": "tx_1",
+      "userId": "usr_db_101",
+      "points": 580,
+      "reason": "Initial Registration & Practice",
+      "createdAt": "2026-08-15T16:07:00.824Z"
+    },
+    {
+      "id": "tx_1786810363000",
+      "points": 50,
+      "reason": "Completed Voice Practice",
+      "createdAt": "2026-08-15T16:12:43.001Z"
+    },
+    {
+      "id": "tx_1786810541733",
+      "points": 20,
+      "reason": "Voice AI Response",
+      "createdAt": "2026-08-15T16:15:41.733Z"
+    },
+    {
+      "id": "tx_1786810557358",
+      "points": 50,
+      "reason": "Completed Voice Practice",
+      "createdAt": "2026-08-15T16:15:57.358Z"
+    },
+    {
+      "id": "tx_1786810652523",
+      "points": 10,
+      "reason": "AI Vocab Generation",
+      "createdAt": "2026-08-15T16:17:32.523Z"
+    },
+    {
+      "id": "tx_1786810674150",
+      "points": 5,
+      "reason": "Learned Word",
+      "createdAt": "2026-08-15T16:17:54.150Z"
+    },
+    {
+      "id": "tx_1786810705455",
+      "points": 50,
+      "reason": "Completed Voice Practice",
+      "createdAt": "2026-08-15T16:18:25.455Z"
+    },
+    {
+      "id": "tx_1786810717238",
+      "points": 50,
+      "reason": "Completed Voice Practice",
+      "createdAt": "2026-08-15T16:18:37.238Z"
+    },
+    {
+      "id": "tx_1786810743404",
+      "points": 10,
+      "reason": "AI Vocab Generation",
+      "createdAt": "2026-08-15T16:19:03.404Z"
+    },
+    {
+      "id": "tx_1786810808268",
+      "points": 50,
+      "reason": "Completed Voice Practice",
+      "createdAt": "2026-08-15T16:20:08.268Z"
+    },
+    {
+      "id": "tx_1786810929082",
+      "points": 10,
+      "reason": "AI Vocab Generation",
+      "createdAt": "2026-08-15T16:22:09.082Z"
+    },
+    {
+      "id": "tx_1786810941348",
+      "points": 10,
+      "reason": "AI Vocab Generation",
+      "createdAt": "2026-08-15T16:22:21.348Z"
+    },
+    {
+      "id": "tx_1786810960894",
+      "points": 10,
+      "reason": "AI Vocab Generation",
+      "createdAt": "2026-08-15T16:22:40.894Z"
+    },
+    {
+      "id": "tx_1786810966291",
+      "points": 5,
+      "reason": "Learned Word",
+      "createdAt": "2026-08-15T16:22:46.291Z"
+    },
+    {
+      "id": "tx_1786810967256",
+      "points": 5,
+      "reason": "Learned Word",
+      "createdAt": "2026-08-15T16:22:47.256Z"
+    },
+    {
+      "id": "tx_1786810968157",
+      "points": 5,
+      "reason": "Learned Word",
+      "createdAt": "2026-08-15T16:22:48.157Z"
+    },
+    {
+      "id": "tx_1786810969007",
+      "points": 5,
+      "reason": "Learned Word",
+      "createdAt": "2026-08-15T16:22:49.007Z"
+    },
+    {
+      "id": "tx_1786810969723",
+      "points": 5,
+      "reason": "Learned Word",
+      "createdAt": "2026-08-15T16:22:49.723Z"
+    },
+    {
+      "id": "tx_1786810970508",
+      "points": 5,
+      "reason": "Learned Word",
+      "createdAt": "2026-08-15T16:22:50.508Z"
+    },
+    {
+      "id": "tx_1786810971238",
+      "points": 5,
+      "reason": "Learned Word",
+      "createdAt": "2026-08-15T16:22:51.238Z"
+    },
+    {
+      "id": "tx_1786810971926",
+      "points": 5,
+      "reason": "Learned Word",
+      "createdAt": "2026-08-15T16:22:51.926Z"
+    },
+    {
+      "id": "tx_1786810972592",
+      "points": 5,
+      "reason": "Learned Word",
+      "createdAt": "2026-08-15T16:22:52.592Z"
+    },
+    {
+      "id": "tx_1786810981142",
+      "points": 10,
+      "reason": "AI Vocab Generation",
+      "createdAt": "2026-08-15T16:23:01.142Z"
+    },
+    {
+      "id": "tx_1786811115909",
+      "points": 15,
+      "reason": "Pronunciation Scoring",
+      "createdAt": "2026-08-15T16:25:15.909Z"
+    },
+    {
+      "id": "tx_1786811116485",
+      "points": 15,
+      "reason": "Pronunciation Scoring",
+      "createdAt": "2026-08-15T16:25:16.485Z"
+    },
+    {
+      "id": "tx_1786811118830",
+      "points": 15,
+      "reason": "Pronunciation Scoring",
+      "createdAt": "2026-08-15T16:25:18.830Z"
+    },
+    {
+      "id": "tx_1786811217995",
+      "points": 10,
+      "reason": "AI Vocab Generation",
+      "createdAt": "2026-08-15T16:26:57.996Z"
+    },
+    {
+      "id": "tx_1786811230200",
+      "points": 10,
+      "reason": "AI Vocab Generation (human)",
+      "createdAt": "2026-08-15T16:27:10.200Z"
+    },
+    {
+      "id": "tx_1786811259021",
+      "points": 10,
+      "reason": "AI Vocab Generation (beautiful)",
+      "createdAt": "2026-08-15T16:27:39.021Z"
+    },
+    {
+      "id": "tx_1786811315585",
+      "points": 10,
+      "reason": "Correct Grammar Quiz",
+      "createdAt": "2026-08-15T16:28:35.585Z"
+    },
+    {
+      "id": "tx_1786811329945",
+      "points": 10,
+      "reason": "Correct Grammar Quiz",
+      "createdAt": "2026-08-15T16:28:49.945Z"
+    },
+    {
+      "id": "tx_1786811334142",
+      "points": 10,
+      "reason": "Correct Grammar Quiz",
+      "createdAt": "2026-08-15T16:28:54.142Z"
+    },
+    {
+      "id": "tx_1786811666705",
+      "points": 10,
+      "reason": "Correct Grammar Quiz",
+      "createdAt": "2026-08-15T16:34:26.705Z"
+    },
+    {
+      "id": "tx_1786811684031",
+      "points": 10,
+      "reason": "Correct Grammar Quiz",
+      "createdAt": "2026-08-15T16:34:44.031Z"
+    },
+    {
+      "id": "tx_1786811698509",
+      "points": 10,
+      "reason": "Correct Grammar Quiz",
+      "createdAt": "2026-08-15T16:34:58.509Z"
+    },
+    {
+      "id": "tx_1786811702007",
+      "points": 10,
+      "reason": "Correct Grammar Quiz",
+      "createdAt": "2026-08-15T16:35:02.007Z"
+    },
+    {
+      "id": "tx_1786811849840",
+      "points": 10,
+      "reason": "Correct Grammar Quiz",
+      "createdAt": "2026-08-15T16:37:29.840Z"
+    },
+    {
+      "id": "tx_1786811857060",
+      "points": 10,
+      "reason": "Correct Grammar Quiz",
+      "createdAt": "2026-08-15T16:37:37.060Z"
+    },
+    {
+      "id": "tx_1786811870356",
+      "points": 10,
+      "reason": "Correct Grammar Quiz",
+      "createdAt": "2026-08-15T16:37:50.356Z"
+    },
+    {
+      "id": "tx_1786811873850",
+      "points": 10,
+      "reason": "Correct Grammar Quiz",
+      "createdAt": "2026-08-15T16:37:53.850Z"
+    },
+    {
+      "id": "tx_1786811882185",
+      "points": 10,
+      "reason": "Correct Grammar Quiz",
+      "createdAt": "2026-08-15T16:38:02.185Z"
+    },
+    {
+      "id": "tx_1786811893059",
+      "points": 10,
+      "reason": "Correct Grammar Quiz",
+      "createdAt": "2026-08-15T16:38:13.059Z"
+    },
+    {
+      "id": "tx_1786811900788",
+      "points": 10,
+      "reason": "Correct Grammar Quiz",
+      "createdAt": "2026-08-15T16:38:20.788Z"
+    },
+    {
+      "id": "tx_1786811908381",
+      "points": 10,
+      "reason": "Correct Grammar Quiz",
+      "createdAt": "2026-08-15T16:38:28.381Z"
+    },
+    {
+      "id": "tx_1786811912262",
+      "points": 10,
+      "reason": "Correct Grammar Quiz",
+      "createdAt": "2026-08-15T16:38:32.262Z"
+    }
+  ]
+}

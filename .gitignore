@@ -77,3 +77,6 @@ temp/
 **/build
 **/.next
 # Environment Files
+test-gemini.js
+test-groq.js
+test-kafka.js

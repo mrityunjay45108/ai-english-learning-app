@@ -1,12 +1,9 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-
-const inter = Inter({ subsets: ['latin'] });
+import type { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'English Learning AI',
-  description: 'Understand in Hindi. Speak in English.',
+  title: "AI English Learning App",
+  description: "AI-Powered English Learning Ecosystem",
 };
 
 export default function RootLayout({
@@ -15,8 +12,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className="font-sans antialiased bg-slate-950 text-slate-100" suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }

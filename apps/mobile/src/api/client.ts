@@ -1,52 +1,40 @@
+// apps/mobile/src/api/client.ts
 import axios from 'axios';
-import Constants from 'expo-constants';
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3000';
+export const apiClient = axios.create({
+  // Agar aap API Gateway use kar rahe hain toh Gateway ka URL/Port yahan aayega, 
+  // warna direct user-service ka IP:port daal sakte hain.
+  baseURL: 'http://172.19.226.65:3012/api/v1', 
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-class ApiClient {
-  private client = axios.create({
-    baseURL: API_URL,
-    timeout: 15000,
-    headers: { 'Content-Type': 'application/json' },
-  });
-  private token: string | null = null;
+// Request Interceptor: Auto-attach JWT token
+apiClient.interceptors.request.use(
+  async (config) => {
+    try {
+      const token = await AsyncStorage.getItem('user_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error('Error reading token from storage:', error);
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-  constructor() {
-    this.client.interceptors.request.use(
-      async (config) => {
-        if (!this.token) {
-          this.token = await SecureStore.getItemAsync('accessToken');
-        }
-        if (this.token) {
-          config.headers.Authorization = `Bearer ${this.token}`;
-        }
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
+// Response Interceptor: Handle token expiration
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response && error.response.status === 401) {
+      await AsyncStorage.removeItem('user_token');
+    }
+    return Promise.reject(error);
   }
-
-  setToken(token: string) {
-    this.token = token;
-    SecureStore.setItemAsync('accessToken', token);
-  }
-
-  async clearToken() {
-    this.token = null;
-    await SecureStore.deleteItemAsync('accessToken');
-  }
-
-  async get<T>(url: string): Promise<T> {
-    const response = await this.client.get<T>(url);
-    return response.data;
-  }
-
-  async post<T>(url: string, data?: any): Promise<T> {
-    const response = await this.client.post<T>(url, data);
-    return response.data;
-  }
-}
-
-export const apiClient = new ApiClient();
-export default apiClient;
+);
